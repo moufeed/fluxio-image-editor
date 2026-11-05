@@ -1,0 +1,135 @@
+<div
+  class="fluxio-image-editor__controls-group fluxio-image-editor__controls-group--adjustments"
+  role="group"
+  [attr.aria-label]="t('crop-mask.tool')"
+>
+  <div class="fluxio-image-editor__controls-main fluxio-image-editor__controls-main--sliders">
+    <span class="fluxio-image-editor__controls-title">{{ t('crop-mask.tool') }}</span>
+
+    <div
+      class="fluxio-segmented fluxio-segmented--presets fluxio-crop-mask-shapes"
+      role="radiogroup"
+      [attr.aria-label]="t('crop-mask.shape')"
+    >
+      @for (shape of shapeChoices; track shape) {
+        <button
+          type="button"
+          class="fluxio-btn fluxio-btn--icon fluxio-crop-mask-shape-btn"
+          role="radio"
+          [class.fluxio-btn--active]="cropMaskShape() === shape"
+          [attr.aria-checked]="cropMaskShape() === shape"
+          [attr.aria-label]="t('crop-mask.' + shape)"
+          [attr.title]="t('crop-mask.' + shape)"
+          (click)="onShapeChange(shape)"
+        >
+          <svg
+            class="fluxio-btn__icon"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <path
+              [attr.d]="shapeIconPaths[shape]"
+              fill="currentColor"
+              fill-rule="evenodd"
+            />
+          </svg>
+          <span class="fluxio-crop-mask-shape-btn__label">{{ t('crop-mask.' + shape) }}</span>
+        </button>
+      }
+    </div>
+
+    @if (cropMaskGallery().length > 0) {
+      <section class="fluxio-control-section">
+        <header class="fluxio-control-section__header">
+          <span class="fluxio-control-section__title">{{ t('crop-mask.gallery') }}</span>
+        </header>
+        <div class="fluxio-control-section__body">
+          <div class="fluxio-overlay-gallery fluxio-overlay-gallery--emoji" role="list">
+            @for (item of cropMaskGallery(); track item.id) {
+              <button
+                type="button"
+                class="fluxio-overlay-gallery__item fluxio-overlay-gallery__item--emoji"
+                role="listitem"
+                [class.fluxio-overlay-gallery__item--active]="isCustomGalleryActive(item.path)"
+                [attr.aria-label]="item.label"
+                [attr.title]="item.label"
+                (click)="onCustomGallerySelect(item.path)"
+              >
+                <svg viewBox="0 0 1 1" aria-hidden="true" focusable="false">
+                  <path [attr.d]="item.path" fill="currentColor" />
+                </svg>
+              </button>
+            }
+          </div>
+        </div>
+      </section>
+    }
+
+    @for (slider of visibleCropMaskSliders(); track slider.key) {
+      <label
+        class="fluxio-slider"
+        [class.fluxio-slider--active]="cropMaskUiValue(slider.key) !== 0"
+      >
+        <span class="fluxio-slider__header">
+          <span class="fluxio-slider__name">{{ t('crop-mask.' + slider.key) }}</span>
+          <span class="fluxio-slider__value" aria-hidden="true">
+            {{ cropMaskUiValue(slider.key) }}
+          </span>
+        </span>
+        <span class="fluxio-slider__control">
+          <input
+            type="range"
+            class="fluxio-range"
+            [min]="slider.min"
+            [max]="slider.max"
+            step="1"
+            [value]="cropMaskUiValue(slider.key)"
+            [style.--fluxio-range-fill.%]="cropMaskSliderFillPercent(slider)"
+            (input)="onCropMaskSliderInput(slider.key, +$any($event.target).value)"
+            [attr.aria-valuetext]="
+              t('crop-mask.' + slider.key) + ' ' + cropMaskUiValue(slider.key)
+            "
+            [attr.aria-label]="t('crop-mask.' + slider.key)"
+          />
+        </span>
+      </label>
+    }
+
+    @if (cropMaskShape() !== 'none') {
+      <label
+        class="fluxio-slider"
+        [class.fluxio-slider--active]="cropMaskPreviewOpacity() !== 0"
+      >
+        <span class="fluxio-slider__header">
+          <span class="fluxio-slider__name">{{ t('crop-mask.opacity') }}</span>
+          <span class="fluxio-slider__value" aria-hidden="true">
+            {{ cropMaskPreviewOpacity() }}
+          </span>
+        </span>
+        <span class="fluxio-slider__control">
+          <input
+            type="range"
+            class="fluxio-range"
+            min="0"
+            max="100"
+            step="1"
+            [value]="cropMaskPreviewOpacity()"
+            [style.--fluxio-range-fill.%]="cropMaskPreviewOpacity()"
+            (input)="onCropMaskPreviewOpacity(+$any($event.target).value)"
+            [attr.aria-valuetext]="t('crop-mask.opacity') + ' ' + cropMaskPreviewOpacity()"
+            [attr.aria-label]="t('crop-mask.opacity')"
+          />
+        </span>
+      </label>
+    }
+  </div>
+  <fluxio-preview-tool-actions
+    [resetLabel]="t('crop-mask.reset')"
+    [cancelLabel]="t('crop-mask.cancel')"
+    [applyLabel]="t('crop-mask.apply')"
+    (reset)="resetCropMask()"
+    (cancel)="cancelCropMask()"
+    (apply)="applyCropMask()"
+  />
+</div>

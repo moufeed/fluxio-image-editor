@@ -1,0 +1,75 @@
+<nav
+  class="fluxio-utilibar"
+  role="toolbar"
+  [attr.aria-label]="ariaLabel()"
+>
+  <div class="fluxio-utilibar__group" role="group" [attr.aria-label]="toolsAriaLabel()">
+    @for (action of actions(); track action.id) {
+      <button
+        type="button"
+        class="fluxio-utilibar__btn"
+        [class.fluxio-utilibar__btn--icon-only]="action.showIcon && !action.showLabel"
+        [class.fluxio-utilibar__btn--active]="action.active || action.expanded"
+        [class.fluxio-utilibar__btn--group]="action.kind === 'group'"
+        [attr.aria-pressed]="action.kind === 'group' ? action.expanded === true : action.active"
+        [attr.aria-expanded]="action.kind === 'group' ? action.expanded === true : null"
+        [attr.aria-label]="action.label"
+        [attr.title]="action.label"
+        [disabled]="disabled()"
+        (click)="onActionClick(action.id)"
+      >
+        @if (action.showIcon && action.iconPath; as iconPath) {
+          <svg
+            class="fluxio-utilibar__icon"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <path [attr.d]="iconPath" fill="currentColor" />
+          </svg>
+        }
+        @if (action.showLabel) {
+          <span class="fluxio-utilibar__label">{{ action.label }}</span>
+        }
+      </button>
+    }
+  </div>
+</nav>
+
+@if (expandedGroup(); as group) {
+  <aside
+    class="fluxio-utilibar__subrail"
+    role="toolbar"
+    [attr.aria-label]="group.label"
+  >
+    <div class="fluxio-utilibar__group" role="group" [attr.aria-label]="group.label">
+      @for (child of group.children ?? []; track child.id) {
+        <button
+          type="button"
+          class="fluxio-utilibar__btn fluxio-utilibar__btn--child"
+          [class.fluxio-utilibar__btn--icon-only]="child.showIcon && !child.showLabel"
+          [class.fluxio-utilibar__btn--active]="child.active"
+          [attr.aria-pressed]="child.active"
+          [attr.aria-label]="child.label"
+          [attr.title]="child.label"
+          [disabled]="disabled()"
+          (click)="onActionClick(child.id)"
+        >
+          @if (child.showIcon && child.iconPath; as childIcon) {
+            <svg
+              class="fluxio-utilibar__icon"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path [attr.d]="childIcon" fill="currentColor" />
+            </svg>
+          }
+          @if (child.showLabel) {
+            <span class="fluxio-utilibar__label">{{ child.label }}</span>
+          }
+        </button>
+      }
+    </div>
+  </aside>
+}

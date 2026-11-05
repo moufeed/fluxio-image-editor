@@ -1,0 +1,176 @@
+<div
+  class="fluxio-image-editor__controls-group fluxio-image-editor__controls-group--inspector"
+  role="group"
+  [attr.aria-label]="t('drawing.tool')"
+>
+  <div class="fluxio-image-editor__controls-main fluxio-image-editor__controls-main--form">
+    <span class="fluxio-image-editor__controls-title">{{ t('drawing.tool') }}</span>
+    @if (draftPaths().length === 0) {
+      <p class="fluxio-image-editor__controls-hint">{{ t('drawing.empty') }}</p>
+    } @else {
+      <section class="fluxio-control-section fluxio-control-section--quiet fluxio-control-section--layers">
+        <header class="fluxio-control-section__header">
+          <span class="fluxio-control-section__title">{{ t('annotation.objects') }}</span>
+          <span class="fluxio-control-section__value">{{ draftPaths().length }}</span>
+        </header>
+        <div
+          class="fluxio-annotation-list"
+          role="listbox"
+          [attr.aria-label]="t('drawing.tool')"
+        >
+          @for (item of draftPaths(); track item.id) {
+            <div
+              class="fluxio-annotation-list__layer"
+              role="option"
+              [attr.aria-selected]="selectedPathId() === item.id"
+              [class.fluxio-annotation-list__layer--active]="selectedPathId() === item.id"
+              (click)="selectDraftPath(item.id)"
+              (keydown.enter)="selectDraftPath(item.id)"
+              tabindex="0"
+            >
+              <span class="fluxio-annotation-list__layer-preview">
+                <span
+                  class="fluxio-annotation-list__layer-preview--swatch"
+                  [style.background]="item.stroke"
+                  aria-hidden="true"
+                ></span>
+              </span>
+              <span class="fluxio-annotation-list__layer-name">{{ tf('drawing.strokeItem', { n: $index + 1 }) }}</span>
+              <span class="fluxio-annotation-list__layer-actions">
+                <span
+                  class="fluxio-annotation-list__layer-action fluxio-annotation-list__layer-action--delete"
+                  (click)="deleteDraftPath(item.id); $event.stopPropagation()"
+                  aria-hidden="true"
+                  [attr.title]="t('annotation.delete')"
+                >&times;</span>
+              </span>
+            </div>
+          }
+        </div>
+      </section>
+    }
+    <p class="fluxio-image-editor__controls-hint">{{ t('drawing.hint') }}</p>
+    <section class="fluxio-control-section">
+      <header class="fluxio-control-section__header">
+        <span class="fluxio-control-section__title">{{ t('controls.appearance') }}</span>
+      </header>
+      <div class="fluxio-control-section__body">
+        <fluxio-color-alpha-field
+          [label]="t('drawing.stroke')"
+          [opacityLabel]="t('color.opacity')"
+          [value]="penStroke()"
+          [fallback]="colorFallbackRed"
+          (valueChange)="updatePenStroke($event)"
+          (valueCommit)="commitPenProps()"
+        />
+        <label
+          class="fluxio-slider"
+          [class.fluxio-slider--active]="penStrokeWidth() !== 4"
+        >
+          <span class="fluxio-slider__header">
+            <span class="fluxio-slider__name">{{ t('drawing.strokeWidth') }}</span>
+            <span class="fluxio-slider__value" aria-hidden="true">{{ penStrokeWidth() }}px</span>
+          </span>
+          <span class="fluxio-slider__control">
+            <input
+              type="range"
+              class="fluxio-range"
+              min="1"
+              max="48"
+              step="1"
+              [value]="penStrokeWidth()"
+              [style.--fluxio-range-fill.%]="((penStrokeWidth() - 1) / 47) * 100"
+              (input)="updatePenStrokeWidth(+$any($event.target).value)"
+              (change)="commitPenProps()"
+              [attr.aria-valuetext]="t('drawing.strokeWidth') + ' ' + penStrokeWidth() + 'px'"
+              [attr.aria-label]="t('drawing.strokeWidth')"
+            />
+          </span>
+        </label>
+      </div>
+    </section>
+    @if (selectedPath(); as path) {
+      @if (selectedGeometry(); as geo) {
+        <section class="fluxio-control-section">
+          <header class="fluxio-control-section__header">
+            <span class="fluxio-control-section__title">{{ t('annotation.geometry') }}</span>
+          </header>
+          <div
+            class="fluxio-geometry-grid"
+            role="group"
+            [attr.aria-label]="t('annotation.geometry')"
+          >
+            <label class="fluxio-field fluxio-field--compact">
+              <span class="fluxio-field__label">{{ t('annotation.x') }}</span>
+              <span class="fluxio-field__control">
+                <input
+                  type="number"
+                  [value]="geo.x | number: '1.0-0'"
+                  (change)="updateSelectedGeometry({ x: +$any($event.target).value }); commitSelectedGeometry()"
+                />
+                <span class="fluxio-field__suffix" aria-hidden="true">px</span>
+              </span>
+            </label>
+            <label class="fluxio-field fluxio-field--compact">
+              <span class="fluxio-field__label">{{ t('annotation.y') }}</span>
+              <span class="fluxio-field__control">
+                <input
+                  type="number"
+                  [value]="geo.y | number: '1.0-0'"
+                  (change)="updateSelectedGeometry({ y: +$any($event.target).value }); commitSelectedGeometry()"
+                />
+                <span class="fluxio-field__suffix" aria-hidden="true">px</span>
+              </span>
+            </label>
+            <label class="fluxio-field fluxio-field--compact">
+              <span class="fluxio-field__label">{{ t('annotation.width') }}</span>
+              <span class="fluxio-field__control">
+                <input
+                  type="number"
+                  min="8"
+                  [value]="geo.width | number: '1.0-0'"
+                  (change)="updateSelectedGeometry({ width: +$any($event.target).value }); commitSelectedGeometry()"
+                />
+                <span class="fluxio-field__suffix" aria-hidden="true">px</span>
+              </span>
+            </label>
+            <label class="fluxio-field fluxio-field--compact">
+              <span class="fluxio-field__label">{{ t('annotation.height') }}</span>
+              <span class="fluxio-field__control">
+                <input
+                  type="number"
+                  min="8"
+                  [value]="geo.height | number: '1.0-0'"
+                  (change)="updateSelectedGeometry({ height: +$any($event.target).value }); commitSelectedGeometry()"
+                />
+                <span class="fluxio-field__suffix" aria-hidden="true">px</span>
+              </span>
+            </label>
+          </div>
+        </section>
+      }
+      <fluxio-order-actions
+        [ariaLabel]="t('annotation.order')"
+        [bringToFrontLabel]="t('annotation.bringToFront')"
+        [bringForwardLabel]="t('annotation.bringForward')"
+        [sendBackwardLabel]="t('annotation.sendBackward')"
+        [sendToBackLabel]="t('annotation.sendToBack')"
+        [disabled]="!primarySelectedAnnotationId()"
+        [canFront]="canReorderSelectedAnnotation('front')"
+        [canForward]="canReorderSelectedAnnotation('forward')"
+        [canBackward]="canReorderSelectedAnnotation('backward')"
+        [canBack]="canReorderSelectedAnnotation('back')"
+        (reorder)="reorderSelectedAnnotation($event)"
+      />
+    }
+  </div>
+  <fluxio-object-inspector-actions
+    [showDelete]="false"
+    [doneLabel]="t('drawing.done')"
+    [secondaryLabel]="t('drawing.clear')"
+    [showSecondary]="true"
+    [secondaryDisabled]="draftPaths().length === 0"
+    (secondary)="clearDrawing()"
+    (done)="doneDrawing()"
+  />
+</div>

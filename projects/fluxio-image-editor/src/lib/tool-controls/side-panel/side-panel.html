@@ -1,0 +1,60 @@
+<div class="fluxio-side-panel">
+  <div class="fluxio-side-panel__header">
+    <div class="fluxio-side-panel__tabs" role="tablist" [attr.aria-label]="ariaLabel()">
+      @for (item of tabs(); track item.id) {
+        <button
+          type="button"
+          class="fluxio-side-panel__tab"
+          role="tab"
+          [id]="'fluxio-side-panel-tab-' + item.id"
+          [class.fluxio-side-panel__tab--active]="tab() === item.id"
+          [attr.aria-selected]="tab() === item.id"
+          [attr.aria-controls]="'fluxio-side-panel-panel-' + item.id"
+          (click)="selectTab(item.id)"
+        >
+          {{ t(item.labelKey) }}
+        </button>
+      }
+    </div>
+    <button
+      type="button"
+      class="fluxio-btn fluxio-btn--quiet fluxio-btn--icon"
+      (click)="close()"
+      [attr.aria-label]="closeLabel()"
+    >
+      ×
+    </button>
+  </div>
+
+  <div class="fluxio-side-panel__body">
+    @if (tabs().some((item) => item.id === 'layers')) {
+      @defer (when tab() === 'layers') {
+        <!-- @defer keeps content once triggered; @if owns visibility after that. -->
+        @if (tab() === 'layers') {
+          <div
+            class="fluxio-side-panel__pane"
+            role="tabpanel"
+            id="fluxio-side-panel-panel-layers"
+            aria-labelledby="fluxio-side-panel-tab-layers"
+          >
+            <fluxio-layers-panel />
+          </div>
+        }
+      }
+    }
+    @if (tabs().some((item) => item.id === 'history')) {
+      @defer (when tab() === 'history') {
+        @if (tab() === 'history') {
+          <div
+            class="fluxio-side-panel__pane"
+            role="tabpanel"
+            id="fluxio-side-panel-panel-history"
+            aria-labelledby="fluxio-side-panel-tab-history"
+          >
+            <fluxio-history-panel />
+          </div>
+        }
+      }
+    }
+  </div>
+</div>

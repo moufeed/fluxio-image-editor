@@ -1,0 +1,310 @@
+<div
+  class="fluxio-image-editor__controls-group fluxio-image-editor__controls-group--inspector"
+  role="group"
+  [attr.aria-label]="t('text.tool')"
+>
+  <div class="fluxio-image-editor__controls-main fluxio-image-editor__controls-main--form">
+    <div class="fluxio-image-editor__controls-lead">
+      <span class="fluxio-image-editor__controls-title">{{ t('text.tool') }}</span>
+      <button type="button" class="fluxio-btn fluxio-btn--primary" (click)="addDraftText()">
+        {{ t('text.add') }}
+      </button>
+    </div>
+    @if (draftTexts().length === 0) {
+      <p class="fluxio-image-editor__controls-hint">{{ t('text.empty') }}</p>
+    } @else {
+      <section class="fluxio-control-section fluxio-control-section--quiet fluxio-control-section--layers">
+        <header class="fluxio-control-section__header">
+          <span class="fluxio-control-section__title">{{ t('annotation.objects') }}</span>
+          <span class="fluxio-control-section__value">{{ draftTexts().length }}</span>
+        </header>
+        <div
+          class="fluxio-annotation-list"
+          role="listbox"
+          [attr.aria-label]="t('text.tool')"
+        >
+          @for (item of draftTexts(); track item.id) {
+            <div
+              class="fluxio-annotation-list__layer"
+              role="option"
+              [attr.aria-selected]="selectedTextIds().includes(item.id)"
+              [class.fluxio-annotation-list__layer--active]="selectedTextIds().includes(item.id)"
+              (click)="selectDraftText(item.id, $event)"
+              (keydown.enter)="selectDraftText(item.id, $event)"
+              tabindex="0"
+            >
+              <span class="fluxio-annotation-list__layer-preview fluxio-annotation-list__layer-preview--icon" aria-hidden="true">Aa</span>
+              <span class="fluxio-annotation-list__layer-name">{{ item.text || t('text.tool') }}</span>
+              <span class="fluxio-annotation-list__layer-actions">
+                <button
+                  type="button"
+                  class="fluxio-annotation-list__layer-action fluxio-annotation-list__layer-action--delete"
+                  (click)="deleteDraftText(item.id); $event.stopPropagation()"
+                  [attr.aria-label]="t('annotation.delete')"
+                  [attr.title]="t('annotation.delete')"
+                >&times;</button>
+              </span>
+            </div>
+          }
+        </div>
+      </section>
+    }
+    <p class="fluxio-image-editor__controls-hint">{{ t('annotation.keyboardHint') }}</p>
+    @if (selectedText(); as text) {
+      <section class="fluxio-control-section">
+        <header class="fluxio-control-section__header">
+          <span class="fluxio-control-section__title">{{ t('controls.content') }}</span>
+        </header>
+        <div class="fluxio-control-section__body">
+          <label class="fluxio-field fluxio-field--stack fluxio-field--span-2">
+            <span class="fluxio-field__label">{{ t('text.content') }}</span>
+            <textarea
+              class="fluxio-text-content"
+              rows="2"
+              [value]="text.text"
+              (input)="updateSelectedText({ text: $any($event.target).value })"
+              (change)="commitSelectedTextProps()"
+            ></textarea>
+          </label>
+        </div>
+      </section>
+      <section class="fluxio-control-section">
+        <header class="fluxio-control-section__header">
+          <span class="fluxio-control-section__title">{{ t('controls.typography') }}</span>
+        </header>
+        <div class="fluxio-control-section__body fluxio-control-section__body--grid">
+          <label class="fluxio-field fluxio-field--stack fluxio-field--span-2">
+            <span class="fluxio-field__label">{{ t('text.fontFamily') }}</span>
+            <select
+              class="fluxio-select"
+              [value]="text.fontFamily"
+              (change)="updateSelectedText({ fontFamily: $any($event.target).value }); commitSelectedTextProps()"
+            >
+              @for (font of fontFamilies; track font.value) {
+                <option [value]="font.value" [style.fontFamily]="font.value">{{ font.label }}</option>
+              }
+            </select>
+          </label>
+          <label class="fluxio-field fluxio-field--stack fluxio-field--compact">
+            <span class="fluxio-field__label">{{ t('text.fontSize') }}</span>
+            <span class="fluxio-field__control">
+              <input
+                type="number"
+                min="8"
+                max="400"
+                [value]="text.fontSize"
+                (input)="updateSelectedText({ fontSize: +$any($event.target).value })"
+                (change)="commitSelectedTextProps()"
+              />
+              <span class="fluxio-field__suffix" aria-hidden="true">px</span>
+            </span>
+          </label>
+          <label class="fluxio-field fluxio-field--stack fluxio-field--compact">
+            <span class="fluxio-field__label">{{ t('text.lineHeight') }}</span>
+            <input
+              type="number"
+              min="0.75"
+              max="3"
+              step="0.1"
+              [value]="text.lineHeight"
+              (input)="updateSelectedText({ lineHeight: +$any($event.target).value })"
+              (change)="commitSelectedTextProps()"
+            />
+          </label>
+          <div class="fluxio-field fluxio-field--stack">
+            <span class="fluxio-field__label">{{ t('text.style') }}</span>
+            <div class="fluxio-segmented" role="group" [attr.aria-label]="t('text.style')">
+              <button
+                type="button"
+                class="fluxio-btn fluxio-btn--icon"
+                style="font-weight: 700"
+                [class.fluxio-btn--active]="text.fontWeight === 'bold'"
+                [attr.aria-pressed]="text.fontWeight === 'bold'"
+                [attr.aria-label]="t('text.bold')"
+                [attr.title]="t('text.bold')"
+                (click)="updateSelectedText({ fontWeight: text.fontWeight === 'bold' ? 'normal' : 'bold' }); commitSelectedTextProps()"
+              >B</button>
+              <button
+                type="button"
+                class="fluxio-btn fluxio-btn--icon"
+                style="font-style: italic"
+                [class.fluxio-btn--active]="text.fontStyle === 'italic'"
+                [attr.aria-pressed]="text.fontStyle === 'italic'"
+                [attr.aria-label]="t('text.italic')"
+                [attr.title]="t('text.italic')"
+                (click)="updateSelectedText({ fontStyle: text.fontStyle === 'italic' ? 'normal' : 'italic' }); commitSelectedTextProps()"
+              >I</button>
+              <button
+                type="button"
+                class="fluxio-btn fluxio-btn--icon"
+                style="text-decoration: underline"
+                [class.fluxio-btn--active]="text.underline"
+                [attr.aria-pressed]="text.underline"
+                [attr.aria-label]="t('text.underline')"
+                [attr.title]="t('text.underline')"
+                (click)="updateSelectedText({ underline: !text.underline }); commitSelectedTextProps()"
+              >U</button>
+              <button
+                type="button"
+                class="fluxio-btn fluxio-btn--icon"
+                style="text-decoration: line-through"
+                [class.fluxio-btn--active]="text.linethrough"
+                [attr.aria-pressed]="text.linethrough"
+                [attr.aria-label]="t('text.strikethrough')"
+                [attr.title]="t('text.strikethrough')"
+                (click)="updateSelectedText({ linethrough: !text.linethrough }); commitSelectedTextProps()"
+              >S</button>
+            </div>
+          </div>
+          <div class="fluxio-field fluxio-field--stack">
+            <span class="fluxio-field__label">{{ t('text.align') }}</span>
+            <div class="fluxio-segmented" role="group" [attr.aria-label]="t('text.align')">
+              @for (a of textAligns; track a) {
+                <button
+                  type="button"
+                  class="fluxio-btn fluxio-btn--icon"
+                  [class.fluxio-btn--active]="text.textAlign === a"
+                  [attr.aria-pressed]="text.textAlign === a"
+                  [attr.aria-label]="t('text.align.' + a)"
+                  [attr.title]="t('text.align.' + a)"
+                  (click)="setTextAlign(a)"
+                >
+                  <svg
+                    class="fluxio-btn__icon"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <path [attr.d]="alignIconPaths[a]" fill="currentColor" />
+                  </svg>
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="fluxio-control-section">
+        <header class="fluxio-control-section__header">
+          <span class="fluxio-control-section__title">{{ t('controls.appearance') }}</span>
+        </header>
+        <div class="fluxio-control-section__body">
+          <fluxio-color-alpha-field
+            [label]="t('text.fill')"
+            [opacityLabel]="t('color.opacity')"
+            [showRecent]="false"
+            [value]="text.fill"
+            [fallback]="colorFallbackWhite"
+            (valueChange)="updateSelectedText({ fill: $event })"
+            (valueCommit)="commitSelectedTextProps()"
+          />
+          <fluxio-color-alpha-field
+            [label]="t('text.background')"
+            [opacityLabel]="t('color.opacity')"
+            [value]="text.backgroundColor"
+            [fallback]="colorFallbackBlack"
+            (valueChange)="onTextBackgroundChange($event)"
+            (valueCommit)="commitSelectedTextProps()"
+          />
+          @if (!isBackgroundTransparent(text.backgroundColor)) {
+            <label class="fluxio-field fluxio-field--stack fluxio-field--compact">
+              <span class="fluxio-field__label">{{ t('text.padding') }}</span>
+              <span class="fluxio-field__control">
+                <input
+                  type="number"
+                  min="0"
+                  max="200"
+                  [value]="text.padding"
+                  (input)="updateSelectedText({ padding: +$any($event.target).value })"
+                  (change)="commitSelectedTextProps()"
+                />
+                <span class="fluxio-field__suffix" aria-hidden="true">px</span>
+              </span>
+            </label>
+          }
+        </div>
+      </section>
+      @if (hasMultiSelection()) {
+        <p class="fluxio-image-editor__controls-hint" role="status">{{ multiSelectionLabel() }}</p>
+      } @else if (selectedGeometry(); as geo) {
+        <section class="fluxio-control-section">
+          <header class="fluxio-control-section__header">
+            <span class="fluxio-control-section__title">{{ t('annotation.geometry') }}</span>
+          </header>
+          <div
+            class="fluxio-geometry-grid"
+            role="group"
+            [attr.aria-label]="t('annotation.geometry')"
+          >
+            <label class="fluxio-field fluxio-field--compact">
+              <span class="fluxio-field__label">{{ t('annotation.x') }}</span>
+              <span class="fluxio-field__control">
+                <input
+                  type="number"
+                  [value]="geo.x | number: '1.0-0'"
+                  (change)="updateSelectedGeometry({ x: +$any($event.target).value }); commitSelectedGeometry()"
+                />
+                <span class="fluxio-field__suffix" aria-hidden="true">px</span>
+              </span>
+            </label>
+            <label class="fluxio-field fluxio-field--compact">
+              <span class="fluxio-field__label">{{ t('annotation.y') }}</span>
+              <span class="fluxio-field__control">
+                <input
+                  type="number"
+                  [value]="geo.y | number: '1.0-0'"
+                  (change)="updateSelectedGeometry({ y: +$any($event.target).value }); commitSelectedGeometry()"
+                />
+                <span class="fluxio-field__suffix" aria-hidden="true">px</span>
+              </span>
+            </label>
+            <label class="fluxio-field fluxio-field--compact">
+              <span class="fluxio-field__label">{{ t('annotation.width') }}</span>
+              <span class="fluxio-field__control">
+                <input
+                  type="number"
+                  min="8"
+                  [value]="geo.width | number: '1.0-0'"
+                  (change)="updateSelectedGeometry({ width: +$any($event.target).value }); commitSelectedGeometry()"
+                />
+                <span class="fluxio-field__suffix" aria-hidden="true">px</span>
+              </span>
+            </label>
+            <label class="fluxio-field fluxio-field--compact">
+              <span class="fluxio-field__label">{{ t('annotation.height') }}</span>
+              <span class="fluxio-field__control">
+                <input
+                  type="number"
+                  min="8"
+                  [value]="geo.height | number: '1.0-0'"
+                  (change)="updateSelectedGeometry({ height: +$any($event.target).value }); commitSelectedGeometry()"
+                />
+                <span class="fluxio-field__suffix" aria-hidden="true">px</span>
+              </span>
+            </label>
+          </div>
+        </section>
+      }
+      <fluxio-order-actions
+        [ariaLabel]="t('annotation.order')"
+        [bringToFrontLabel]="t('annotation.bringToFront')"
+        [bringForwardLabel]="t('annotation.bringForward')"
+        [sendBackwardLabel]="t('annotation.sendBackward')"
+        [sendToBackLabel]="t('annotation.sendToBack')"
+        [disabled]="!primarySelectedAnnotationId()"
+        [canFront]="canReorderSelectedAnnotation('front')"
+        [canForward]="canReorderSelectedAnnotation('forward')"
+        [canBackward]="canReorderSelectedAnnotation('backward')"
+        [canBack]="canReorderSelectedAnnotation('back')"
+        (reorder)="reorderSelectedAnnotation($event)"
+      />
+    }
+  </div>
+  <fluxio-object-inspector-actions
+    [showDelete]="true"
+    [deleteDisabled]="!selectedText()"
+    [deleteLabel]="t('annotation.delete')"
+    [doneLabel]="t('text.done')"
+    (deleteSelected)="deleteSelectedText()"
+    (done)="doneText()"
+  />
+</div>

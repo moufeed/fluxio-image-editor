@@ -1,0 +1,30 @@
+@if (entries().length <= 1) {
+  <p class="fluxio-history-panel__empty">{{ t('history.empty') }}</p>
+} @else {
+  <div
+    #timeline
+    class="fluxio-history-panel__timeline"
+    role="listbox"
+    [attr.aria-label]="t('history.aria')"
+  >
+    @for (entry of entries(); track entry.index) {
+      <button
+        type="button"
+        class="fluxio-history-panel__entry"
+        role="option"
+        [class.fluxio-history-panel__entry--current]="entry.isCurrent"
+        [class.fluxio-history-panel__entry--future]="entry.isFuture"
+        [attr.aria-selected]="entry.isCurrent"
+        (click)="jumpTo(entry.index)"
+      >
+        <span class="fluxio-history-panel__index" aria-hidden="true">{{ entry.index }}</span>
+        <span class="fluxio-history-panel__main">
+          <span class="fluxio-history-panel__label">{{ entry.label }}</span>
+          @if (relativeTime(entry.timestamp); as time) {
+            <span class="fluxio-history-panel__time">{{ time }}</span>
+          }
+        </span>
+      </button>
+    }
+  </div>
+}

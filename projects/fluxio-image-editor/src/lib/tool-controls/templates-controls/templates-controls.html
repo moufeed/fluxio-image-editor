@@ -1,0 +1,84 @@
+<div
+  class="fluxio-image-editor__controls-group fluxio-image-editor__controls-group--inspector"
+  role="group"
+  [attr.aria-label]="t('templates.tool')"
+>
+  <div class="fluxio-image-editor__controls-main fluxio-image-editor__controls-main--form">
+    <div class="fluxio-image-editor__controls-lead">
+      <span class="fluxio-image-editor__controls-title">{{ t('templates.tool') }}</span>
+    </div>
+    <p class="fluxio-image-editor__controls-hint">
+      {{
+        hasSelection()
+          ? selectedIsCollage()
+            ? t('templates.adjustCollage')
+            : t('templates.adjust')
+          : t('templates.empty')
+      }}
+    </p>
+
+    @if (gallery().length === 0) {
+      <p class="fluxio-image-editor__controls-hint">{{ t('templates.noGallery') }}</p>
+    } @else {
+      @for (category of categories(); track category) {
+        <section class="fluxio-control-section">
+          <header class="fluxio-control-section__header">
+            <span class="fluxio-control-section__title">{{ categoryTitle(category) }}</span>
+          </header>
+          <div class="fluxio-control-section__body">
+            <div class="fluxio-template-gallery" role="list">
+              @for (preset of templatesInCategory(category); track preset.id) {
+                <button
+                  type="button"
+                  class="fluxio-template-gallery__item"
+                  role="listitem"
+                  [class.fluxio-template-gallery__item--active]="selectedTemplateId() === preset.id"
+                  [class.fluxio-template-gallery__item--thumb]="!!preset.thumbnail"
+                  [attr.aria-pressed]="selectedTemplateId() === preset.id"
+                  [attr.aria-label]="preset.label + ', ' + sizeLabel(preset)"
+                  (click)="selectTemplate(preset)"
+                >
+                  @if (preset.thumbnail) {
+                    <img
+                      class="fluxio-template-gallery__thumb"
+                      [src]="preset.thumbnail"
+                      alt=""
+                      aria-hidden="true"
+                    />
+                  }
+                  <span class="fluxio-template-gallery__text">
+                    <span class="fluxio-template-gallery__label">{{ preset.label }}</span>
+                    <span class="fluxio-template-gallery__size">
+                      {{ sizeLabel(preset) }}
+                      @if (hasSlots(preset)) {
+                        · {{ t('templates.hasSlots') }}
+                      } @else if (hasPlaceholders(preset)) {
+                        · {{ t('templates.hasPlaceholders') }}
+                      }
+                    </span>
+                  </span>
+                </button>
+              }
+            </div>
+          </div>
+        </section>
+      }
+    }
+  </div>
+
+  @if (hasSelection()) {
+    <fluxio-preview-tool-actions
+      [showReset]="false"
+      [cancelLabel]="t('templates.cancel')"
+      [applyLabel]="t('templates.apply')"
+      (cancel)="clearSelection()"
+      (apply)="apply()"
+    />
+  } @else {
+    <div class="fluxio-image-editor__controls-actions">
+      <button type="button" class="fluxio-btn fluxio-btn--done" (click)="done()">
+        {{ t('templates.done') }}
+      </button>
+    </div>
+  }
+</div>

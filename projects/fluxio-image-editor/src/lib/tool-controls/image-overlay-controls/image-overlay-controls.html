@@ -1,0 +1,242 @@
+<div
+  class="fluxio-image-editor__controls-group fluxio-image-editor__controls-group--inspector"
+  role="group"
+  [attr.aria-label]="t(ns() + '.tool')"
+>
+  <div class="fluxio-image-editor__controls-main fluxio-image-editor__controls-main--form">
+    <div class="fluxio-image-editor__controls-lead">
+      <span class="fluxio-image-editor__controls-title">{{ t(ns() + '.tool') }}</span>
+      @if (showUpload() && !isEmpty()) {
+        <label
+          class="fluxio-btn fluxio-btn--file fluxio-btn--icon-only"
+          [attr.aria-label]="t(ns() + '.upload')"
+          [attr.title]="t(ns() + '.upload')"
+        >
+          <svg class="fluxio-btn__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path [attr.d]="uploadIconPath" fill="currentColor" />
+          </svg>
+          <input
+            class="fluxio-file-input"
+            type="file"
+            accept="image/*"
+            (change)="onOverlayFileSelected($event)"
+          />
+        </label>
+      }
+    </div>
+    @if (isEmpty()) {
+      @if (showUpload()) {
+        <label
+          class="fluxio-upload-dropzone"
+          [class.fluxio-upload-dropzone--active]="dragOver()"
+          (dragenter)="onDragEnter($event)"
+          (dragover)="onDragOver($event)"
+          (dragleave)="onDragLeave($event)"
+          (drop)="onDrop($event)"
+        >
+          <svg
+            class="fluxio-upload-dropzone__icon"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <path [attr.d]="uploadIconPath" fill="currentColor" />
+          </svg>
+          <span class="fluxio-upload-dropzone__title">{{ t(ns() + '.upload') }}</span>
+          <span class="fluxio-upload-dropzone__hint">{{ t(ns() + '.dropHint') }}</span>
+          <input
+            class="fluxio-file-input"
+            type="file"
+            accept="image/*"
+            (change)="onOverlayFileSelected($event)"
+          />
+        </label>
+      } @else {
+        <p class="fluxio-image-editor__controls-hint">{{ t(ns() + '.empty') }}</p>
+      }
+    } @else {
+      <section class="fluxio-control-section fluxio-control-section--quiet fluxio-control-section--layers">
+        <header class="fluxio-control-section__header">
+          <span class="fluxio-control-section__title">{{ t('annotation.objects') }}</span>
+          <span class="fluxio-control-section__value">{{ draftImages().length }}</span>
+        </header>
+        <div
+          class="fluxio-annotation-list"
+          role="listbox"
+          [attr.aria-label]="t(ns() + '.tool')"
+        >
+          @for (item of draftImages(); track item.id) {
+            <div
+              class="fluxio-annotation-list__layer"
+              role="option"
+              [attr.aria-selected]="selectedImageIds().includes(item.id)"
+              [class.fluxio-annotation-list__layer--active]="selectedImageIds().includes(item.id)"
+              (click)="selectDraftImage(item.id, $event)"
+              (keydown.enter)="selectDraftImage(item.id, $event)"
+              tabindex="0"
+            >
+              <span class="fluxio-annotation-list__layer-preview">
+                <img
+                  class="fluxio-annotation-list__layer-preview--thumb"
+                  [src]="item.src"
+                  alt=""
+                  aria-hidden="true"
+                />
+              </span>
+              <span class="fluxio-annotation-list__layer-name">{{ itemLabel($index) }}</span>
+              <span class="fluxio-annotation-list__layer-actions">
+                <span
+                  class="fluxio-annotation-list__layer-action fluxio-annotation-list__layer-action--delete"
+                  (click)="deleteDraftImage(item.id); $event.stopPropagation()"
+                  aria-hidden="true"
+                  [attr.title]="t('annotation.delete')"
+                >&times;</span>
+              </span>
+            </div>
+          }
+        </div>
+      </section>
+    }
+    <p class="fluxio-image-editor__controls-hint">{{ t('annotation.keyboardHint') }}</p>
+    <section class="fluxio-control-section">
+      <header class="fluxio-control-section__header">
+        <span class="fluxio-control-section__title">{{ t(ns() + '.gallery') }}</span>
+      </header>
+      <div class="fluxio-control-section__body">
+        @if (gallery().length === 0) {
+          <p class="fluxio-image-editor__controls-hint">{{ t(ns() + '.noGallery') }}</p>
+        } @else {
+          <div class="fluxio-overlay-gallery" role="list">
+            @for (item of gallery(); track item.id) {
+              <button
+                type="button"
+                class="fluxio-overlay-gallery__item"
+                role="listitem"
+                [attr.aria-label]="item.label"
+                (click)="addGalleryOverlay(item.src)"
+              >
+                <img [src]="item.src" [alt]="item.label" />
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </section>
+    @if (selectedImage(); as image) {
+      <section class="fluxio-control-section">
+        <header class="fluxio-control-section__header">
+          <span class="fluxio-control-section__title">{{ t('controls.appearance') }}</span>
+        </header>
+        <div class="fluxio-control-section__body">
+          <label
+            class="fluxio-slider"
+            [class.fluxio-slider--active]="image.opacity !== 1"
+          >
+            <span class="fluxio-slider__header">
+              <span class="fluxio-slider__name">{{ t(ns() + '.opacity') }}</span>
+              <span class="fluxio-slider__value" aria-hidden="true">
+                {{ (image.opacity * 100) | number: '1.0-0' }}%
+              </span>
+            </span>
+            <span class="fluxio-slider__control">
+              <input
+                type="range"
+                class="fluxio-range"
+                min="5"
+                max="100"
+                step="1"
+                [value]="(image.opacity * 100) | number: '1.0-0'"
+                [style.--fluxio-range-fill.%]="(((image.opacity * 100) - 5) / 95) * 100"
+                (input)="updateSelectedImageOpacity(+$any($event.target).value)"
+                (change)="commitSelectedImageOpacity()"
+                [attr.aria-valuetext]="
+                  t(ns() + '.opacity') + ' ' + ((image.opacity * 100) | number: '1.0-0') + '%'
+                "
+                [attr.aria-label]="t(ns() + '.opacity')"
+              />
+            </span>
+          </label>
+        </div>
+      </section>
+      @if (hasMultiSelection()) {
+        <p class="fluxio-image-editor__controls-hint" role="status">{{ multiSelectionLabel() }}</p>
+      } @else if (selectedGeometry(); as geo) {
+        <section class="fluxio-control-section">
+          <header class="fluxio-control-section__header">
+            <span class="fluxio-control-section__title">{{ t('annotation.geometry') }}</span>
+          </header>
+          <div
+            class="fluxio-geometry-grid"
+            role="group"
+            [attr.aria-label]="t('annotation.geometry')"
+          >
+            <label class="fluxio-field fluxio-field--compact">
+              <span class="fluxio-field__label">{{ t('annotation.x') }}</span>
+              <span class="fluxio-field__control">
+                <input
+                  type="number"
+                  [value]="geo.x | number: '1.0-0'"
+                  (change)="updateSelectedGeometry({ x: +$any($event.target).value }); commitSelectedGeometry()"
+                />
+                <span class="fluxio-field__suffix" aria-hidden="true">px</span>
+              </span>
+            </label>
+            <label class="fluxio-field fluxio-field--compact">
+              <span class="fluxio-field__label">{{ t('annotation.y') }}</span>
+              <span class="fluxio-field__control">
+                <input
+                  type="number"
+                  [value]="geo.y | number: '1.0-0'"
+                  (change)="updateSelectedGeometry({ y: +$any($event.target).value }); commitSelectedGeometry()"
+                />
+                <span class="fluxio-field__suffix" aria-hidden="true">px</span>
+              </span>
+            </label>
+            <label class="fluxio-field fluxio-field--compact">
+              <span class="fluxio-field__label">{{ t('annotation.width') }}</span>
+              <span class="fluxio-field__control">
+                <input
+                  type="number"
+                  min="8"
+                  [value]="geo.width | number: '1.0-0'"
+                  (change)="updateSelectedGeometry({ width: +$any($event.target).value }); commitSelectedGeometry()"
+                />
+                <span class="fluxio-field__suffix" aria-hidden="true">px</span>
+              </span>
+            </label>
+            <label class="fluxio-field fluxio-field--compact">
+              <span class="fluxio-field__label">{{ t('annotation.height') }}</span>
+              <span class="fluxio-field__control">
+                <input
+                  type="number"
+                  min="8"
+                  [value]="geo.height | number: '1.0-0'"
+                  (change)="updateSelectedGeometry({ height: +$any($event.target).value }); commitSelectedGeometry()"
+                />
+                <span class="fluxio-field__suffix" aria-hidden="true">px</span>
+              </span>
+            </label>
+          </div>
+        </section>
+      }
+      <fluxio-order-actions
+        [ariaLabel]="t('annotation.order')"
+        [bringToFrontLabel]="t('annotation.bringToFront')"
+        [bringForwardLabel]="t('annotation.bringForward')"
+        [sendBackwardLabel]="t('annotation.sendBackward')"
+        [sendToBackLabel]="t('annotation.sendToBack')"
+        [disabled]="!primarySelectedAnnotationId()"
+        [canFront]="canReorderSelectedAnnotation('front')"
+        [canForward]="canReorderSelectedAnnotation('forward')"
+        [canBackward]="canReorderSelectedAnnotation('backward')"
+        [canBack]="canReorderSelectedAnnotation('back')"
+        (reorder)="reorderSelectedAnnotation($event)"
+      />
+    }
+  </div>
+  <fluxio-object-inspector-actions
+    [showDelete]="false"
+    [doneLabel]="t(ns() + '.done')"
+    (done)="done()"
+  />
+</div>

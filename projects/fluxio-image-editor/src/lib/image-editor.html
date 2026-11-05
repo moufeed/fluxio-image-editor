@@ -1,0 +1,80 @@
+<div
+  class="fluxio-image-editor__shell"
+  [attr.data-toolbar-pos]="presentation.toolbarBarPosition()"
+  [attr.data-utils-pos]="presentation.utilsPosition()"
+  [attr.data-controls-pos]="presentation.controlsPosition()"
+  [attr.data-controls-open]="presentation.controlsOpen() ? 'true' : null"
+  [attr.data-crop-minimize]="presentation.cropMinimizeToolbar()"
+  [attr.data-side-panel-open]="
+    presentation.sidePanelOpen() && presentation.readyState() ? 'true' : null
+  "
+>
+  <fluxio-editor-toolbar (closeRequest)="onClose()" />
+
+  <fluxio-utilibar
+    [actions]="toolbar.utilibarActions()"
+    [position]="presentation.utilsPosition()"
+    [disabled]="!presentation.readyState()"
+    [ariaLabel]="presentation.t('utilibar.aria')"
+    [toolsAriaLabel]="presentation.t('utilibar.tools')"
+    (actionSelect)="toolbar.onToolbarAction($event)"
+  />
+
+  <div class="fluxio-image-editor__status" aria-live="polite">
+    <div class="fluxio-image-editor__status-main">
+      @switch (presentation.statusState()) {
+        @case ('loading') {
+          <span class="fluxio-chip fluxio-chip--busy">{{ presentation.t('status.loading') }}</span>
+        }
+        @case ('busy') {
+          <span class="fluxio-chip fluxio-chip--busy">{{ presentation.t('status.busy') }}</span>
+        }
+        @case ('error') {
+          <span class="fluxio-chip fluxio-chip--danger">{{ presentation.errorState() }}</span>
+        }
+        @case ('ready') {
+          <span class="fluxio-chip fluxio-chip--ok">{{ presentation.t('status.ready') }}</span>
+          @if (presentation.comparingOriginal()) {
+            <span class="fluxio-chip fluxio-chip--warn">{{ presentation.t('status.comparing') }}</span>
+          }
+          @if (presentation.dirtyState()) {
+            <span class="fluxio-chip fluxio-chip--warn">{{ presentation.t('status.dirty') }}</span>
+          }
+        }
+        @default {
+          <span class="fluxio-chip">{{ presentation.t('status.idle') }}</span>
+        }
+      }
+    </div>
+    @if (presentation.statusState() === 'ready') {
+      <div class="fluxio-image-editor__status-meta" aria-hidden="false">
+        <span class="fluxio-meta">{{ presentation.rotationState() }}°</span>
+        <span class="fluxio-meta fluxio-meta--mono"
+          >{{ presentation.outputWidthState() }}×{{ presentation.outputHeightState() }}</span
+        >
+      </div>
+    }
+  </div>
+
+  <div class="fluxio-image-editor__stage">
+    <fluxio-editor-viewport />
+
+    <!-- @defer (when) only loads once; @if tears the panel down when closed. -->
+    @defer (when presentation.sidePanelOpen() && presentation.readyState()) {
+      @if (presentation.sidePanelOpen() && presentation.readyState()) {
+        <fluxio-side-panel />
+      }
+    }
+  </div>
+
+  <fluxio-controls-panel
+    [open]="presentation.controlsOpen()"
+    [position]="presentation.controlsPosition()"
+    [ariaLabel]="presentation.t('controls.aria')"
+    [activeTool]="presentation.activeControlTool()"
+  >
+    <fluxio-tool-controls-host />
+  </fluxio-controls-panel>
+</div>
+
+<fluxio-editor-dialogs (saved)="onExportSaved($event)" (batchSaved)="onBatchExportSaved($event)" />

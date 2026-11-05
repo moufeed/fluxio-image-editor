@@ -1,0 +1,49 @@
+---
+description: Match existing fluxio-image-editor control-panel UI patterns
+globs: projects/fluxio-image-editor/src/lib/tool-controls/**/*.{html,ts,scss},projects/fluxio-image-editor/src/lib/chrome/**/*.{html,ts,scss},projects/fluxio-image-editor/src/lib/image-editor.scss
+alwaysApply: false
+---
+
+# fluxio tool-controls UI
+
+When adding or restyling plugin/tool panels, match existing tools (`focus`, `crop`, `frame`, `rulers`). Do **not** invent one-off chip/toggle/footer styles or pull in Tailwind/shadcn.
+
+## Shell layout (required)
+
+```html
+<div
+  class="fluxio-image-editor__controls-group fluxio-image-editor__controls-group--adjustments"
+  role="group"
+  [attr.aria-label]="t('plugin.tool')"
+>
+  <div class="fluxio-image-editor__controls-main fluxio-image-editor__controls-main--sliders">
+    <span class="fluxio-image-editor__controls-title">{{ t('plugin.tool') }}</span>
+    <p class="fluxio-image-editor__controls-hint">{{ t('plugin.hint') }}</p>
+    <!-- sections / controls -->
+  </div>
+  <!-- footer actions -->
+</div>
+```
+
+- Inspector/forms: `__controls-group--inspector` + `__controls-main--form`
+- Group blocks: `fluxio-control-section` → `__header` / `__title` / `__body`
+
+## Presets & toggles
+
+- Preset/mode rows: `fluxio-segmented fluxio-segmented--presets` + `fluxio-btn` / `fluxio-btn--icon`
+- Active state: `fluxio-btn--active` + `aria-checked` / `aria-pressed`
+- Checkboxes: `label.fluxio-check` (not custom toggle rows)
+- Hints: `fluxio-image-editor__controls-hint` (not `fluxio-control-hint`)
+- Action rows: `fluxio-control-row fluxio-control-row--compact` + `fluxio-btn` / `fluxio-btn--clear`
+
+## Footers
+
+- Preview/commit tools: `<fluxio-preview-tool-actions>` (Reset / Cancel / Apply)
+- Live/immediate tools: `<fluxio-immediate-tool-actions>` (Done only)
+
+## Styling rules
+
+- Prefer classes already in `image-editor.scss`
+- New shared variants: extend existing selectors (e.g. next to `.fluxio-focus-mode-btn`) instead of new ad-hoc systems
+- Avoid unused primitives (`fluxio-chip-row`, `fluxio-toggle-row`, `fluxio-tool-actions`) unless you also style them in `image-editor.scss`
+- Keep i18n via `t('…')`; add locale keys on the plugin when adding labels

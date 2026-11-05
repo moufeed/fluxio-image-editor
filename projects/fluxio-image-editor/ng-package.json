@@ -1,0 +1,9 @@
+{
+  "$schema": "../../node_modules/ng-packagr/ng-package.schema.json",
+  "dest": "../../dist/fluxio-image-editor",
+  "allowedNonPeerDependencies": ["nanoid"],
+  "assets": [{ "glob": "CHANGELOG.md", "input": ".", "output": "." }],
+  "lib": {
+    "entryFile": "src/public-api.ts"
+  }
+}

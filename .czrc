@@ -1,0 +1,57 @@
+{
+  "path": "cz-conventional-changelog",
+  "types": {
+    "feat": {
+      "description": "A new feature",
+      "title": "Features"
+    },
+    "fix": {
+      "description": "A bug fix",
+      "title": "Bug Fixes"
+    },
+    "docs": {
+      "description": "Documentation only changes",
+      "title": "Documentation"
+    },
+    "style": {
+      "description": "Code style changes (formatting, etc.)",
+      "title": "Styles"
+    },
+    "refactor": {
+      "description": "Refactor without changing behavior",
+      "title": "Refactoring"
+    },
+    "perf": {
+      "description": "Performance improvements",
+      "title": "Performance"
+    },
+    "test": {
+      "description": "Add or update tests",
+      "title": "Tests"
+    },
+    "build": {
+      "description": "Build system or dependency changes",
+      "title": "Builds"
+    },
+    "ci": {
+      "description": "CI/CD configuration changes",
+      "title": "Continuous Integration"
+    },
+    "chore": {
+      "description": "Other changes that don't affect source or tests",
+      "title": "Chores"
+    },
+    "revert": {
+      "description": "Revert a previous commit",
+      "title": "Reverts"
+    },
+    "wip": {
+      "description": "Work in progress 🚧",
+      "title": "WIP"
+    },
+    "hotfix": {
+      "description": "Critical bug fix that must be patched immediately",
+      "title": "Hotfix"
+    }
+  }
+}

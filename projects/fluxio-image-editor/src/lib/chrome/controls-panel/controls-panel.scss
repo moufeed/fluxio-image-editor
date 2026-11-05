@@ -1,0 +1,979 @@
+.fluxio-controls-panel-host {
+  display: none;
+  grid-area: controls;
+  min-width: 0;
+  min-height: 0;
+  align-self: stretch;
+  /* Figma-like inspector density tokens (scoped to panel host). */
+  --fluxio-panel-control-h: 1.75rem;
+  --fluxio-panel-radius: 0.3125rem;
+  --fluxio-panel-gap: 0.5rem;
+  --fluxio-panel-pad-x: 0.75rem;
+  --fluxio-panel-input-bg: color-mix(in srgb, var(--fluxio-control-bg, #1c222c) 88%, black 12%);
+  --fluxio-panel-input-hover: color-mix(in srgb, var(--fluxio-control-bg, #1c222c) 72%, white 6%);
+  --fluxio-panel-label-size: 0.6875rem;
+  --fluxio-panel-value-size: 0.6875rem;
+}
+
+.fluxio-controls-panel-host.fluxio-controls-panel-host--open {
+  display: flex;
+  flex-direction: column;
+  width: var(--fluxio-controls-panel-w, 15.5rem);
+  max-width: min(17.5rem, 44vw);
+  border-inline-end: 1px solid var(--fluxio-border, #2a313c);
+  background: var(--fluxio-bg-elevated, #171b22);
+  box-shadow: inset -1px 0 0 color-mix(in srgb, var(--fluxio-border, #2a313c) 35%, transparent);
+}
+
+.fluxio-controls-panel-host[data-pos='right'].fluxio-controls-panel-host--open {
+  border-inline-end: 0;
+  border-inline-start: 1px solid var(--fluxio-border, #2a313c);
+  box-shadow: inset 1px 0 0 color-mix(in srgb, var(--fluxio-border, #2a313c) 35%, transparent);
+}
+
+/* Tablet: inspector overlays canvas opposite the utilibar so the rail stays usable. */
+@container fluxio-editor (max-width: 1024px) {
+  .fluxio-image-editor__shell[data-side-panel-open] {
+    --fluxio-side-panel-offset: var(--fluxio-side-panel-w, 16.5rem);
+  }
+
+  .fluxio-controls-panel-host.fluxio-controls-panel-host--open {
+    position: absolute;
+    inset-block: 0;
+    z-index: 7;
+    grid-area: 1 / 1 / -1 / -1;
+    width: var(--fluxio-controls-panel-w, 15.5rem);
+    max-width: min(17.5rem, 85cqw);
+    height: auto;
+    max-height: 100%;
+    background: var(--fluxio-bg-elevated, #171b22);
+  }
+
+  /* Utils on the left → dock controls on the right (ignore configured controls pos). */
+  .fluxio-image-editor__shell[data-utils-pos='left'] .fluxio-controls-panel-host.fluxio-controls-panel-host--open {
+    inset-inline-start: auto;
+    /* Sit beside the Layers/History drawer instead of underneath it. */
+    inset-inline-end: var(--fluxio-side-panel-offset, 0);
+    border-inline-end: 0;
+    border-inline-start: 1px solid var(--fluxio-border, #2a313c);
+    box-shadow:
+      -4px 0 24px rgb(0 0 0 / 28%),
+      inset 1px 0 0 color-mix(in srgb, var(--fluxio-border, #2a313c) 35%, transparent);
+  }
+
+  /* Utils on the right → dock controls on the left. */
+  .fluxio-image-editor__shell[data-utils-pos='right'] .fluxio-controls-panel-host.fluxio-controls-panel-host--open {
+    inset-inline-start: 0;
+    inset-inline-end: auto;
+    border-inline-start: 0;
+    border-inline-end: 1px solid var(--fluxio-border, #2a313c);
+    box-shadow:
+      4px 0 24px rgb(0 0 0 / 28%),
+      inset -1px 0 0 color-mix(in srgb, var(--fluxio-border, #2a313c) 35%, transparent);
+  }
+}
+
+/* Phone: inspector as bottom sheet above the tool rail. */
+@container fluxio-editor (max-width: 768px) {
+  /* The drawer floats over the canvas here, so the sheet keeps the full width. */
+  .fluxio-image-editor__shell[data-side-panel-open] {
+    --fluxio-side-panel-offset: 0;
+  }
+
+  .fluxio-controls-panel-host.fluxio-controls-panel-host--open,
+  .fluxio-controls-panel-host[data-pos='right'].fluxio-controls-panel-host--open {
+    inset-block: auto 0;
+    inset-inline: 0;
+    width: 100%;
+    max-width: none;
+    max-height: min(55vh, 28rem);
+    border: 0;
+    border-block-start: 1px solid var(--fluxio-border, #2a313c);
+    border-radius: 0.75rem 0.75rem 0 0;
+    box-shadow: 0 -8px 28px rgb(0 0 0 / 32%);
+  }
+
+  .fluxio-controls-panel-host.fluxio-controls-panel-host--open::before {
+    content: '';
+    flex: 0 0 auto;
+    width: 2.25rem;
+    height: 0.25rem;
+    margin: 0.45rem auto 0.15rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--fluxio-muted, #9aa6b5) 55%, transparent);
+  }
+
+  /* PV37: shorter crop sheet when minimizeToolbar is auto (default). */
+  .fluxio-image-editor__shell[data-crop-minimize='auto']
+    .fluxio-controls-panel-host.fluxio-controls-panel-host--open:has(.fluxio-controls-panel[data-tool='crop']) {
+    max-height: min(40vh, 16.5rem);
+  }
+}
+
+.fluxio-controls-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  height: 100%;
+  container-type: inline-size;
+  container-name: fluxio-controls;
+}
+
+.fluxio-controls-panel__scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--fluxio-border-strong, #3d4654) 70%, transparent) transparent;
+  overscroll-behavior: contain;
+}
+
+/* ── Controls panel: Figma-like design inspector ── */
+fluxio-controls-panel {
+  --fluxio-control-h: var(--fluxio-panel-control-h, 1.75rem);
+  --fluxio-radius-sm: var(--fluxio-panel-radius, 0.3125rem);
+  --fluxio-panel-input-bg: color-mix(in srgb, var(--fluxio-control-bg) 88%, black 12%);
+  --fluxio-panel-input-hover: color-mix(in srgb, var(--fluxio-control-bg) 72%, white 6%);
+  --fluxio-panel-label-size: 0.6875rem;
+  --fluxio-panel-value-size: 0.6875rem;
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+fluxio-controls-panel .fluxio-image-editor__controls-group {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    'main'
+    'actions';
+  max-height: none;
+  align-items: stretch;
+  gap: 0;
+  padding: 0;
+  min-height: 0;
+}
+
+fluxio-controls-panel .fluxio-image-editor__controls-main {
+  gap: var(--fluxio-panel-gap, 0.5rem);
+  padding: 0.5rem var(--fluxio-panel-pad-x, 0.75rem) 0.65rem;
+}
+
+fluxio-controls-panel .fluxio-image-editor__controls-main--toolbar,
+fluxio-controls-panel .fluxio-image-editor__controls-main--form,
+fluxio-controls-panel .fluxio-image-editor__controls-main--filters {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.45rem;
+}
+
+fluxio-controls-panel .fluxio-image-editor__controls-main--sliders {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  grid-template-columns: unset;
+  gap: 0.15rem;
+  width: 100%;
+}
+
+fluxio-controls-panel .fluxio-image-editor__controls-main--sliders > .fluxio-slider,
+fluxio-controls-panel .fluxio-image-editor__controls-main--sliders > .fluxio-segmented {
+  width: 100%;
+}
+
+fluxio-controls-panel .fluxio-image-editor__controls-title {
+  margin: 0;
+  min-width: 0;
+  padding-block: 0.15rem;
+  font-size: 0.75rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  color: var(--fluxio-text);
+}
+
+/* Sticky panel title when tool has no lead row */
+fluxio-controls-panel .fluxio-image-editor__controls-main > .fluxio-image-editor__controls-title:first-child {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  margin: -0.65rem calc(var(--fluxio-panel-pad-x, 0.75rem) * -1) 0.15rem;
+  padding: 0.55rem var(--fluxio-panel-pad-x, 0.75rem);
+  border-bottom: 1px solid var(--fluxio-border);
+  background: color-mix(in srgb, var(--fluxio-bg-elevated) 92%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+fluxio-controls-panel .fluxio-image-editor__controls-lead {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  margin: -0.65rem calc(var(--fluxio-panel-pad-x, 0.75rem) * -1) 0;
+  padding: 0.55rem var(--fluxio-panel-pad-x, 0.75rem);
+  border-bottom: 1px solid var(--fluxio-border);
+  background: color-mix(in srgb, var(--fluxio-bg-elevated) 92%, transparent);
+  backdrop-filter: blur(8px);
+  gap: 0.5rem;
+}
+
+fluxio-controls-panel .fluxio-image-editor__controls-lead .fluxio-image-editor__controls-title {
+  flex: 1 1 auto;
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+
+fluxio-controls-panel .fluxio-image-editor__controls-lead .fluxio-btn,
+fluxio-controls-panel .fluxio-image-editor__controls-lead .fluxio-btn--file {
+  margin-inline-start: 0;
+  flex: 0 0 auto;
+}
+
+fluxio-controls-panel .fluxio-upload-dropzone {
+  min-height: 4.75rem;
+  padding: 0.7rem 0.55rem;
+  gap: 0.3rem;
+}
+
+fluxio-controls-panel .fluxio-upload-dropzone__hint {
+  font-size: var(--fluxio-panel-label-size, 0.6875rem);
+}
+
+fluxio-controls-panel .fluxio-image-editor__controls-hint {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-width: none;
+  font-size: var(--fluxio-panel-label-size, 0.6875rem);
+  line-height: 1.4;
+  opacity: 0.85;
+}
+
+/* Sections: hairline dividers, no cards */
+fluxio-controls-panel .fluxio-control-section,
+fluxio-controls-panel .fluxio-image-editor__controls-section {
+  gap: 0.35rem;
+  padding: 0.55rem 0 0.6rem;
+  border: 0;
+  border-radius: 0;
+  border-top: 1px solid var(--fluxio-border);
+  background: transparent;
+}
+
+fluxio-controls-panel .fluxio-control-section--quiet {
+  padding: 0.45rem 0;
+  border-style: solid;
+  background: transparent;
+}
+
+fluxio-controls-panel .fluxio-control-section--flush {
+  padding: 0.45rem 0;
+  border-top: 1px solid var(--fluxio-border);
+}
+
+fluxio-controls-panel .fluxio-control-section__header {
+  min-height: 1rem;
+  align-items: center;
+}
+
+fluxio-controls-panel .fluxio-control-section__title {
+  font-size: 0.625rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+}
+
+fluxio-controls-panel .fluxio-control-section__value {
+  font-size: var(--fluxio-panel-value-size, 0.6875rem);
+  font-weight: 600;
+  color: var(--fluxio-muted);
+}
+
+fluxio-controls-panel .fluxio-control-section__body {
+  gap: 0.35rem;
+}
+
+fluxio-controls-panel .fluxio-control-section__body--grid {
+  gap: 0.3rem 0.4rem;
+}
+
+fluxio-controls-panel .fluxio-control-row,
+fluxio-controls-panel .fluxio-control-row--compact {
+  gap: 0.4rem;
+}
+
+/* Buttons: compact inspector chrome */
+fluxio-controls-panel .fluxio-btn {
+  min-height: var(--fluxio-control-h);
+  min-width: var(--fluxio-control-h);
+  padding: 0 0.5rem;
+  border-color: transparent;
+  border-radius: var(--fluxio-radius-sm);
+  background: var(--fluxio-panel-input-bg);
+  font-size: var(--fluxio-panel-value-size, 0.6875rem);
+  font-weight: 550;
+  box-shadow: none;
+}
+
+fluxio-controls-panel .fluxio-btn:hover:not(:disabled) {
+  border-color: transparent;
+  background: var(--fluxio-panel-input-hover);
+}
+
+fluxio-controls-panel .fluxio-btn:active:not(:disabled) {
+  transform: none;
+}
+
+fluxio-controls-panel .fluxio-btn--quiet {
+  background: transparent;
+}
+
+fluxio-controls-panel .fluxio-btn--quiet:hover:not(:disabled) {
+  background: var(--fluxio-panel-input-bg);
+}
+
+fluxio-controls-panel .fluxio-btn--primary {
+  background: var(--fluxio-accent);
+  color: var(--fluxio-accent-contrast);
+  font-weight: 650;
+}
+
+fluxio-controls-panel .fluxio-btn--primary:hover:not(:disabled) {
+  background: var(--fluxio-accent-hover);
+}
+
+fluxio-controls-panel .fluxio-btn--active {
+  border-color: transparent;
+  background: color-mix(in srgb, var(--fluxio-accent) 22%, var(--fluxio-panel-input-bg));
+  box-shadow: none;
+  font-weight: 650;
+}
+
+fluxio-controls-panel .fluxio-btn--icon {
+  min-width: var(--fluxio-control-h);
+  padding-inline: 0;
+  font-size: 0.8125rem;
+}
+
+fluxio-controls-panel .fluxio-btn--chip {
+  min-height: 1.5rem;
+  border-radius: var(--fluxio-radius-sm);
+  font-size: var(--fluxio-panel-value-size, 0.6875rem);
+}
+
+fluxio-controls-panel .fluxio-btn:focus-visible {
+  outline: 1px solid var(--fluxio-focus);
+  outline-offset: 1px;
+}
+
+/* Segmented / icon groups */
+fluxio-controls-panel .fluxio-segmented {
+  width: 100%;
+  padding: 0.125rem;
+  border-color: transparent;
+  border-radius: var(--fluxio-radius-sm);
+  background: var(--fluxio-panel-input-bg);
+}
+
+fluxio-controls-panel .fluxio-segmented .fluxio-btn {
+  flex: 1 1 0;
+  min-height: calc(var(--fluxio-control-h) - 0.15rem);
+  background: transparent;
+}
+
+fluxio-controls-panel .fluxio-segmented .fluxio-btn--active {
+  background: color-mix(in srgb, var(--fluxio-bg-elevated) 55%, white 8%);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--fluxio-border) 70%, transparent);
+}
+
+fluxio-controls-panel .fluxio-segmented--presets {
+  max-width: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.125rem;
+}
+
+fluxio-controls-panel .fluxio-segmented--presets .fluxio-btn {
+  min-width: 0;
+  padding-inline: 0.25rem;
+}
+
+fluxio-controls-panel .fluxio-icon-button-group {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.35rem;
+  width: 100%;
+}
+
+fluxio-controls-panel .fluxio-icon-button-group .fluxio-btn {
+  width: 100%;
+}
+
+fluxio-controls-panel .fluxio-order-actions,
+fluxio-controls-panel fluxio-order-actions {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.35rem;
+  width: 100%;
+}
+
+/* Fields: fill-only inputs with integrated units */
+fluxio-controls-panel .fluxio-field--stack {
+  gap: 0.2rem;
+}
+
+/* Compact numeric props: Figma-style label | value row */
+fluxio-controls-panel .fluxio-field--compact {
+  display: grid;
+  grid-template-columns: minmax(1.5rem, 34%) minmax(0, 1fr);
+  align-items: center;
+  gap: 0.3rem;
+}
+
+fluxio-controls-panel .fluxio-field--stack:has(.fluxio-segmented) {
+  display: grid;
+  grid-template-columns: minmax(2.5rem, 34%) minmax(0, 1fr);
+  align-items: center;
+  gap: 0.35rem;
+}
+
+fluxio-controls-panel .fluxio-field--stack:has(.fluxio-segmented) > .fluxio-field__label,
+fluxio-controls-panel .fluxio-field--compact > .fluxio-field__label {
+  margin: 0;
+}
+
+fluxio-controls-panel .fluxio-field__label {
+  font-size: var(--fluxio-panel-label-size, 0.6875rem);
+  font-weight: 550;
+  letter-spacing: 0;
+  color: var(--fluxio-muted);
+}
+
+fluxio-controls-panel .fluxio-field--compact .fluxio-field__label {
+  font-size: var(--fluxio-panel-label-size, 0.6875rem);
+  justify-content: flex-start;
+}
+
+fluxio-controls-panel .fluxio-field input[type='number'],
+fluxio-controls-panel .fluxio-field input[type='text'],
+fluxio-controls-panel .fluxio-field input[type='search'],
+fluxio-controls-panel .fluxio-field select,
+fluxio-controls-panel .fluxio-select,
+fluxio-controls-panel .fluxio-text-content {
+  min-height: var(--fluxio-control-h);
+  padding: 0 0.45rem;
+  border: 1px solid transparent;
+  border-radius: var(--fluxio-radius-sm);
+  background: var(--fluxio-panel-input-bg);
+  font-size: var(--fluxio-panel-value-size, 0.6875rem);
+  font-variant-numeric: tabular-nums;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease;
+}
+
+fluxio-controls-panel .fluxio-field input[type='number'] {
+  appearance: textfield;
+}
+
+fluxio-controls-panel .fluxio-field input[type='number']::-webkit-outer-spin-button,
+fluxio-controls-panel .fluxio-field input[type='number']::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+fluxio-controls-panel .fluxio-field input[type='number']:hover,
+fluxio-controls-panel .fluxio-field input[type='text']:hover,
+fluxio-controls-panel .fluxio-field input[type='search']:hover,
+fluxio-controls-panel .fluxio-field select:hover,
+fluxio-controls-panel .fluxio-select:hover,
+fluxio-controls-panel .fluxio-text-content:hover {
+  background: var(--fluxio-panel-input-hover);
+}
+
+fluxio-controls-panel .fluxio-field input[type='number']:focus-visible,
+fluxio-controls-panel .fluxio-field input[type='text']:focus-visible,
+fluxio-controls-panel .fluxio-field input[type='search']:focus-visible,
+fluxio-controls-panel .fluxio-field select:focus-visible,
+fluxio-controls-panel .fluxio-select:focus-visible,
+fluxio-controls-panel .fluxio-text-content:focus-visible {
+  outline: none;
+  border-color: color-mix(in srgb, var(--fluxio-accent) 70%, transparent);
+  background: color-mix(in srgb, var(--fluxio-panel-input-bg) 70%, black 12%);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--fluxio-accent) 35%, transparent);
+}
+
+fluxio-controls-panel .fluxio-field select,
+fluxio-controls-panel .fluxio-select {
+  padding-inline-end: 1.35rem;
+  background-color: var(--fluxio-panel-input-bg);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--fluxio-muted) 50%),
+    linear-gradient(135deg, var(--fluxio-muted) 50%, transparent 50%);
+  background-position:
+    calc(100% - 0.7rem) calc(50% - 0.08rem),
+    calc(100% - 0.45rem) calc(50% - 0.08rem);
+  background-size: 0.28rem 0.28rem, 0.28rem 0.28rem;
+  background-repeat: no-repeat;
+}
+
+fluxio-controls-panel .fluxio-field__control {
+  align-items: stretch;
+  min-height: var(--fluxio-control-h);
+  border-radius: var(--fluxio-radius-sm);
+  background: var(--fluxio-panel-input-bg);
+  overflow: hidden;
+  transition: background-color 120ms ease;
+}
+
+fluxio-controls-panel .fluxio-field__control:hover {
+  background: var(--fluxio-panel-input-hover);
+}
+
+fluxio-controls-panel .fluxio-field__control:focus-within {
+  background: color-mix(in srgb, var(--fluxio-panel-input-bg) 70%, black 12%);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--fluxio-accent) 55%, transparent);
+}
+
+fluxio-controls-panel .fluxio-field__control input,
+fluxio-controls-panel .fluxio-field__control select {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  min-height: var(--fluxio-control-h);
+  box-shadow: none;
+}
+
+fluxio-controls-panel .fluxio-field__control input:hover,
+fluxio-controls-panel .fluxio-field__control select:hover,
+fluxio-controls-panel .fluxio-field__control input:focus-visible,
+fluxio-controls-panel .fluxio-field__control select:focus-visible {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  outline: none;
+}
+
+fluxio-controls-panel .fluxio-field__suffix {
+  min-width: 1.35rem;
+  padding-inline: 0.3rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--fluxio-muted);
+  font-size: 0.625rem;
+  font-weight: 550;
+}
+
+fluxio-controls-panel .fluxio-text-content {
+  min-height: 3rem;
+  padding: 0.4rem 0.5rem;
+  resize: vertical;
+  line-height: 1.4;
+}
+
+fluxio-controls-panel .fluxio-check {
+  min-height: var(--fluxio-control-h);
+  gap: 0.35rem;
+  font-size: var(--fluxio-panel-label-size, 0.6875rem);
+}
+
+fluxio-controls-panel .fluxio-check input {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+/* Sliders: flat property rows */
+fluxio-controls-panel .fluxio-slider {
+  gap: 0.15rem;
+  padding: 0.35rem 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+fluxio-controls-panel .fluxio-slider--active {
+  border: 0;
+  background: transparent;
+}
+
+fluxio-controls-panel .fluxio-slider__header {
+  min-height: 1.15rem;
+}
+
+fluxio-controls-panel .fluxio-slider__name {
+  font-size: var(--fluxio-panel-label-size, 0.6875rem);
+  font-weight: 550;
+  letter-spacing: 0;
+}
+
+fluxio-controls-panel .fluxio-slider__value {
+  min-width: 1.75rem;
+  padding: 0.05rem 0.3rem;
+  border: 0;
+  border-radius: var(--fluxio-radius-sm);
+  background: var(--fluxio-panel-input-bg);
+  font-size: var(--fluxio-panel-value-size, 0.6875rem);
+  font-weight: 600;
+}
+
+fluxio-controls-panel .fluxio-slider--active .fluxio-slider__value {
+  border: 0;
+  color: var(--fluxio-text);
+  background: color-mix(in srgb, var(--fluxio-accent) 16%, var(--fluxio-panel-input-bg));
+}
+
+fluxio-controls-panel .fluxio-slider__control {
+  min-height: 1.35rem;
+}
+
+fluxio-controls-panel .fluxio-range {
+  height: 1.35rem;
+}
+
+fluxio-controls-panel {
+  --fluxio-range-h: 0.2rem;
+  --fluxio-range-thumb-size: 0.75rem;
+}
+
+fluxio-controls-panel .fluxio-range::-webkit-slider-runnable-track,
+fluxio-controls-panel .fluxio-range::-moz-range-track {
+  border: 0;
+  box-shadow: none;
+}
+
+fluxio-controls-panel .fluxio-range::-webkit-slider-thumb,
+fluxio-controls-panel .fluxio-range::-moz-range-thumb {
+  border-width: 1px;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--fluxio-border) 50%, transparent);
+}
+
+fluxio-controls-panel .fluxio-range:hover::-webkit-slider-thumb,
+fluxio-controls-panel .fluxio-range:active::-webkit-slider-thumb,
+fluxio-controls-panel .fluxio-range:hover::-moz-range-thumb,
+fluxio-controls-panel .fluxio-range:active::-moz-range-thumb {
+  transform: none;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--fluxio-accent) 28%, transparent);
+}
+
+fluxio-controls-panel .fluxio-slider__center {
+  height: 0.45rem;
+}
+
+/* Layers list denser */
+fluxio-controls-panel .fluxio-annotation-list {
+  max-height: 7.5rem;
+}
+
+fluxio-controls-panel .fluxio-annotation-list__layer {
+  min-height: 1.75rem;
+  font-size: var(--fluxio-panel-value-size, 0.6875rem);
+  border-radius: var(--fluxio-radius-sm);
+}
+
+/* Filter thumbs */
+fluxio-controls-panel .fluxio-filter-thumbs {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.4rem;
+}
+
+fluxio-controls-panel .fluxio-filter-thumbs__item img,
+fluxio-controls-panel .fluxio-filter-thumbs__placeholder {
+  border-radius: var(--fluxio-radius-sm);
+}
+
+fluxio-controls-panel .fluxio-filter-thumbs__label {
+  font-size: 0.625rem;
+}
+
+fluxio-controls-panel .fluxio-overlay-gallery {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.4rem;
+}
+
+fluxio-controls-panel .fluxio-overlay-gallery__item {
+  min-height: 0;
+  border-radius: var(--fluxio-radius-sm);
+}
+
+/* Layers list sits flush under the panel header */
+fluxio-controls-panel .fluxio-control-section--layers {
+  margin-top: 0.1rem;
+  padding-top: 0.4rem;
+  border-top: 0;
+}
+
+fluxio-controls-panel .fluxio-image-editor__controls-lead + .fluxio-control-section--layers,
+fluxio-controls-panel .fluxio-image-editor__controls-title + .fluxio-control-section--layers,
+fluxio-controls-panel .fluxio-image-editor__controls-lead + .fluxio-image-editor__controls-hint,
+fluxio-controls-panel .fluxio-image-editor__controls-title + .fluxio-image-editor__controls-hint {
+  margin-top: 0;
+}
+
+/* Sticky footer actions */
+fluxio-controls-panel .fluxio-image-editor__controls-actions {
+  --fluxio-action-h: 2rem;
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  width: 100%;
+  justify-content: flex-end;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: auto;
+  padding: 0.6rem var(--fluxio-panel-pad-x, 0.75rem) 0.75rem;
+  border-top: 1px solid var(--fluxio-border);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--fluxio-bg-elevated) 72%, transparent),
+      var(--fluxio-bg-elevated) 28%
+    );
+  backdrop-filter: blur(10px);
+  min-width: 0;
+}
+
+fluxio-controls-panel .fluxio-image-editor__controls-group--inspector > .fluxio-image-editor__controls-actions,
+fluxio-controls-panel .fluxio-image-editor__controls-group--adjustments > .fluxio-image-editor__controls-actions,
+fluxio-controls-panel .fluxio-image-editor__controls-group--filters > .fluxio-image-editor__controls-actions,
+fluxio-controls-panel .fluxio-image-editor__controls-group--toolbar > .fluxio-image-editor__controls-actions {
+  flex-direction: row;
+  min-width: 0;
+}
+
+fluxio-controls-panel .fluxio-image-editor__controls-actions > .fluxio-btn {
+  width: auto;
+  flex: 0 1 auto;
+  min-width: 0;
+  min-height: var(--fluxio-action-h);
+  padding-inline: 0.7rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  box-shadow: none;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+/* Cancel / Reset — quiet secondary */
+fluxio-controls-panel .fluxio-btn--cancel,
+fluxio-controls-panel .fluxio-image-editor__controls-actions > .fluxio-btn--quiet {
+  flex: 0 1 auto;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--fluxio-muted);
+}
+
+fluxio-controls-panel .fluxio-btn--cancel:hover:not(:disabled),
+fluxio-controls-panel .fluxio-image-editor__controls-actions > .fluxio-btn--quiet:hover:not(:disabled) {
+  border-color: transparent;
+  background: var(--fluxio-panel-input-bg);
+  color: var(--fluxio-text);
+}
+
+fluxio-controls-panel .fluxio-btn--cancel:active:not(:disabled),
+fluxio-controls-panel .fluxio-image-editor__controls-actions > .fluxio-btn--quiet:active:not(:disabled) {
+  background: color-mix(in srgb, var(--fluxio-panel-input-bg) 70%, black 12%);
+  transform: none;
+}
+
+/* Clear / destructive secondary */
+fluxio-controls-panel .fluxio-btn--clear {
+  flex: 0 1 auto;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--fluxio-muted);
+}
+
+fluxio-controls-panel .fluxio-btn--clear:hover:not(:disabled) {
+  border-color: transparent;
+  background: color-mix(in srgb, var(--fluxio-danger) 14%, transparent);
+  color: var(--fluxio-danger);
+}
+
+fluxio-controls-panel .fluxio-btn--clear:disabled,
+fluxio-controls-panel .fluxio-btn--cancel:disabled {
+  opacity: 0.38;
+}
+
+/* Apply / Done — primary CTA */
+fluxio-controls-panel .fluxio-btn--done {
+  flex: 1 1 auto;
+  min-width: 4.75rem;
+  margin-inline-start: auto;
+  border: 1px solid transparent;
+  background: var(--fluxio-accent);
+  color: var(--fluxio-accent-contrast);
+  font-weight: 700;
+  box-shadow:
+    0 1px 0 color-mix(in srgb, white 18%, transparent) inset,
+    0 1px 2px color-mix(in srgb, black 28%, transparent);
+}
+
+fluxio-controls-panel .fluxio-btn--done:hover:not(:disabled) {
+  background: var(--fluxio-accent-hover);
+  border-color: transparent;
+  box-shadow:
+    0 1px 0 color-mix(in srgb, white 22%, transparent) inset,
+    0 2px 6px color-mix(in srgb, var(--fluxio-accent) 35%, transparent);
+}
+
+fluxio-controls-panel .fluxio-btn--done:active:not(:disabled) {
+  transform: none;
+  box-shadow:
+    0 1px 0 color-mix(in srgb, black 12%, transparent) inset,
+    0 1px 2px color-mix(in srgb, black 22%, transparent);
+}
+
+fluxio-controls-panel .fluxio-btn--done:disabled {
+  opacity: 0.42;
+  box-shadow: none;
+}
+
+fluxio-controls-panel .fluxio-btn--done:focus-visible,
+fluxio-controls-panel .fluxio-btn--cancel:focus-visible,
+fluxio-controls-panel .fluxio-btn--clear:focus-visible {
+  outline: 2px solid var(--fluxio-focus);
+  outline-offset: 1px;
+}
+
+/* Solo Done (no Cancel) still fills the footer nicely */
+fluxio-controls-panel .fluxio-image-editor__controls-actions:has(> .fluxio-btn--done:only-child) > .fluxio-btn--done {
+  flex: 1 1 auto;
+  width: 100%;
+  margin-inline-start: 0;
+}
+
+fluxio-controls-panel .fluxio-image-editor__controls-main--toolbar .fluxio-field--stack {
+  width: 100%;
+  min-width: 0;
+}
+
+fluxio-controls-panel .fluxio-image-editor__controls-main--toolbar .fluxio-field input[type='number'],
+fluxio-controls-panel .fluxio-image-editor__controls-main--toolbar .fluxio-field input[type='text'],
+fluxio-controls-panel .fluxio-image-editor__controls-main--toolbar .fluxio-field select {
+  width: 100%;
+  min-width: 0;
+}
+
+fluxio-controls-panel .fluxio-image-editor__controls-main--toolbar .fluxio-field__control {
+  width: 100%;
+}
+
+fluxio-controls-panel .fluxio-image-editor__controls-main--toolbar .fluxio-field__control input {
+  width: 100%;
+  min-width: 0;
+}
+
+fluxio-controls-panel .fluxio-image-editor__angle {
+  width: 100%;
+  min-height: var(--fluxio-control-h);
+}
+
+fluxio-controls-panel .fluxio-image-editor__angle input {
+  width: 100%;
+}
+
+/* Color field: Figma fill row */
+fluxio-controls-panel fluxio-color-alpha-field {
+  --fluxio-color-row-h: var(--fluxio-control-h);
+}
+
+.fluxio-image-editor[data-theme='light'] fluxio-controls-panel {
+  --fluxio-panel-input-bg: color-mix(in srgb, var(--fluxio-control-bg) 70%, #e8edf3 30%);
+  --fluxio-panel-input-hover: color-mix(in srgb, var(--fluxio-control-bg) 40%, #dce3ec 60%);
+}
+
+/* ── PV37: minimized crop chrome (Pintura cropMinimizeToolbar parity) ── */
+@mixin fluxio-crop-minimized-controls {
+  fluxio-controls-panel .fluxio-crop-controls .fluxio-image-editor__controls-main--sliders {
+    gap: 0.2rem;
+    padding-block-end: 0.4rem;
+  }
+
+  fluxio-controls-panel .fluxio-crop-aspects.fluxio-segmented--presets {
+    display: flex;
+    flex-wrap: nowrap;
+    grid-template-columns: none;
+    gap: 0.125rem;
+    max-width: none;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  fluxio-controls-panel .fluxio-crop-aspects .fluxio-crop-aspect-btn {
+    flex: 0 0 auto;
+    min-width: 2.5rem;
+    min-height: 2.35rem;
+    padding: 0.3rem 0.35rem;
+  }
+
+  /* Icon-first: keep aria-label / title; hide visible text labels. */
+  fluxio-controls-panel .fluxio-crop-aspects .fluxio-crop-aspect-btn__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  fluxio-controls-panel .fluxio-crop-guides.fluxio-control-section {
+    padding: 0.35rem 0 0.15rem;
+  }
+
+  fluxio-controls-panel .fluxio-crop-guides .fluxio-control-section__header {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  fluxio-controls-panel .fluxio-crop-guide-toggles.fluxio-segmented--presets {
+    display: flex;
+    grid-template-columns: none;
+    gap: 0.125rem;
+  }
+
+  fluxio-controls-panel .fluxio-crop-guide-toggles .fluxio-btn {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  fluxio-controls-panel .fluxio-crop-controls .fluxio-image-editor__controls-actions {
+    padding-block: 0.45rem 0.55rem;
+  }
+}
+
+/* always — compact crop chrome at every shell width */
+.fluxio-image-editor__shell[data-crop-minimize='always'] {
+  @include fluxio-crop-minimized-controls;
+
+  .fluxio-controls-panel-host.fluxio-controls-panel-host--open:has(.fluxio-controls-panel[data-tool='crop']) {
+    max-height: min(40vh, 16.5rem);
+  }
+}
+
+/* auto — compact only on phone-width editor shells */
+@container fluxio-editor (max-width: 768px) {
+  .fluxio-image-editor__shell[data-crop-minimize='auto'] {
+    @include fluxio-crop-minimized-controls;
+  }
+}

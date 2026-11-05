@@ -1,0 +1,88 @@
+name: Create release
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - projects/fluxio-image-editor/package.json
+      - projects/fluxio-image-editor/CHANGELOG.md
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  tag-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Resolve version
+        id: ver
+        run: |
+          VERSION="$(node -p "require('./projects/fluxio-image-editor/package.json').version")"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Verify CHANGELOG entry
+        run: |
+          grep -qF "## [${{ steps.ver.outputs.version }}]" projects/fluxio-image-editor/CHANGELOG.md
+
+      - name: Check if tag already exists
+        id: exists
+        run: |
+          if git rev-parse "${{ steps.ver.outputs.tag }}" >/dev/null 2>&1; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Tag ${{ steps.ver.outputs.tag }} already exists; nothing to do."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Unit + architecture tests
+        if: steps.exists.outputs.skip != 'true'
+        run: |
+          npm ci
+          npm test
+
+      - name: Extract release notes
+        if: steps.exists.outputs.skip != 'true'
+        run: |
+          VERSION="${{ steps.ver.outputs.version }}"
+          awk -v ver="$VERSION" '
+            $0 ~ "^## \\[" ver "\\]" { found=1; next }
+            found && /^## \[/ { exit }
+            found { print }
+          ' projects/fluxio-image-editor/CHANGELOG.md | sed '/./,$!d' > release-notes.md
+          test -s release-notes.md
+
+      - name: Create annotated tag
+        if: steps.exists.outputs.skip != 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "${{ steps.ver.outputs.tag }}" -m "Release ${{ steps.ver.outputs.tag }}"
+
+      - name: Push tag
+        if: steps.exists.outputs.skip != 'true'
+        run: git push origin "${{ steps.ver.outputs.tag }}"
+
+      - name: Create GitHub Release
+        if: steps.exists.outputs.skip != 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.ver.outputs.tag }}
+          name: ${{ steps.ver.outputs.tag }}
+          body_path: release-notes.md
+          draft: false
+          prerelease: false

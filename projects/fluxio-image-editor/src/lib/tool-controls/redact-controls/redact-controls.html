@@ -1,0 +1,53 @@
+<div
+  class="fluxio-image-editor__controls-group fluxio-image-editor__controls-group--adjustments"
+  role="group"
+  [attr.aria-label]="t('redact.tool')"
+>
+  <div class="fluxio-image-editor__controls-main fluxio-image-editor__controls-main--sliders">
+    <span class="fluxio-image-editor__controls-title">{{ t('redact.tool') }}</span>
+
+    <p class="fluxio-image-editor__controls-hint">{{ t('redact.empty') }}</p>
+
+    @if (regions().length > 0) {
+      <section class="fluxio-control-section">
+        <header class="fluxio-control-section__header">
+          <span class="fluxio-control-section__title">{{ t('redact.regions') }}</span>
+          <span class="fluxio-control-section__value">{{ regions().length }}</span>
+        </header>
+        <div class="fluxio-control-section__body">
+          <div class="fluxio-annotation-list" role="list">
+            @for (region of regions(); track region.id; let i = $index) {
+              <div class="fluxio-annotation-list__layer" role="listitem">
+                <span class="fluxio-annotation-list__layer-preview" aria-hidden="true">
+                  <span class="fluxio-annotation-list__layer-preview--icon">▨</span>
+                </span>
+                <span class="fluxio-annotation-list__layer-name">
+                  {{ t('redact.region') }} {{ i + 1 }} · {{ regionSize(region) }}
+                </span>
+                <span class="fluxio-annotation-list__layer-actions">
+                  <button
+                    type="button"
+                    class="fluxio-annotation-list__layer-action fluxio-annotation-list__layer-action--delete"
+                    (click)="removeRegion(region.id)"
+                    [attr.aria-label]="t('redact.delete')"
+                    [title]="t('redact.delete')"
+                  >
+                    ✕
+                  </button>
+                </span>
+              </div>
+            }
+          </div>
+        </div>
+      </section>
+    }
+  </div>
+  <fluxio-preview-tool-actions
+    [resetLabel]="t('redact.reset')"
+    [cancelLabel]="t('redact.cancel')"
+    [applyLabel]="t('redact.apply')"
+    (reset)="resetRedact()"
+    (cancel)="cancelRedact()"
+    (apply)="applyRedact()"
+  />
+</div>

@@ -1,0 +1,196 @@
+<header
+  class="fluxio-image-editor__toolbar"
+  role="toolbar"
+  [attr.aria-label]="presentation.t('toolbar.aria')"
+>
+  <div
+    class="fluxio-image-editor__zoom"
+    role="group"
+    [attr.aria-label]="presentation.t('viewport.zoomPercent')"
+  >
+    <button
+      type="button"
+      class="fluxio-image-editor__zoom-btn"
+      (click)="toolbar.onZoomOut()"
+      [disabled]="!presentation.readyState()"
+      [attr.aria-label]="presentation.t('viewport.zoomOut')"
+    >
+      −
+    </button>
+    <div class="fluxio-image-editor__zoom-percent-wrap">
+      <button
+        type="button"
+        class="fluxio-image-editor__zoom-percent"
+        (click)="toolbar.toggleZoomMenu($event)"
+        [disabled]="!presentation.readyState()"
+        [attr.aria-expanded]="presentation.zoomMenuOpen()"
+        [attr.aria-haspopup]="presentation.useZoomPresetsMenu()"
+        [attr.aria-label]="presentation.t('viewport.zoomPercent')"
+      >
+        {{ presentation.zoomPercentState() }}%
+      </button>
+      @if (presentation.zoomMenuOpen() && presentation.useZoomPresetsMenu()) {
+        <ul class="fluxio-image-editor__zoom-menu" role="menu" (click)="$event.stopPropagation()">
+          @for (preset of presentation.zoomPresets(); track preset.id) {
+            <li role="none">
+              <button type="button" role="menuitem" (click)="toolbar.applyZoomPreset(preset, $event)">
+                {{ toolbar.zoomPresetLabel(preset) }}
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+    <button
+      type="button"
+      class="fluxio-image-editor__zoom-btn"
+      (click)="toolbar.onZoomIn()"
+      [disabled]="!presentation.readyState()"
+      [attr.aria-label]="presentation.t('viewport.zoomIn')"
+    >
+      +
+    </button>
+  </div>
+
+  <div class="fluxio-image-editor__toolbar-group" role="group" [attr.aria-label]="presentation.t('toolbar.history')">
+    <button type="button" class="fluxio-btn" (click)="toolbar.onUndo()" [disabled]="!presentation.canUndoState()">
+      {{ presentation.t('toolbar.undo') }}
+    </button>
+    <button type="button" class="fluxio-btn" (click)="toolbar.onRedo()" [disabled]="!presentation.canRedoState()">
+      {{ presentation.t('toolbar.redo') }}
+    </button>
+    <button
+      type="button"
+      class="fluxio-btn fluxio-btn--quiet"
+      (click)="toolbar.onReset()"
+      [disabled]="!presentation.readyState()"
+    >
+      {{ presentation.t('toolbar.reset') }}
+    </button>
+    @if (presentation.showCompareControl()) {
+      <button
+        type="button"
+        class="fluxio-btn fluxio-btn--quiet"
+        [class.fluxio-btn--active]="presentation.compareLatched() || presentation.comparingOriginal()"
+        [disabled]="!presentation.readyState()"
+        [attr.aria-pressed]="presentation.compareLatched()"
+        [attr.aria-label]="presentation.t('toolbar.compare')"
+        [attr.title]="presentation.t('toolbar.compareHint')"
+        (pointerdown)="compare.pointerDown($event)"
+        (pointerup)="compare.pointerUp($event)"
+        (pointercancel)="compare.pointerUp($event)"
+        (click)="compare.click($event)"
+      >
+        @if (toolbar.actionIconPath('compare.original'); as compareIcon) {
+          <svg class="fluxio-btn__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path [attr.d]="compareIcon" fill="currentColor" />
+          </svg>
+        }
+        <span class="fluxio-btn__label">{{ presentation.t('toolbar.compare') }}</span>
+      </button>
+    }
+    @for (action of toolbar.toolbarPluginActions(); track action.id) {
+      <button
+        type="button"
+        class="fluxio-btn fluxio-btn--quiet"
+        [class.fluxio-btn--active]="action.active"
+        [disabled]="!presentation.readyState()"
+        [attr.aria-pressed]="action.active"
+        [attr.aria-label]="action.label"
+        [attr.title]="action.label"
+        (click)="toolbar.onToolbarAction(action.id)"
+      >
+        @if (action.showIcon && action.iconPath; as pluginIcon) {
+          <svg class="fluxio-btn__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path [attr.d]="pluginIcon" fill="currentColor" />
+          </svg>
+        }
+        @if (action.showLabel) {
+          <span class="fluxio-btn__label">{{ action.label }}</span>
+        }
+      </button>
+    }
+  </div>
+
+  <div class="fluxio-image-editor__toolbar-spacer" aria-hidden="true"></div>
+
+  <div class="fluxio-image-editor__toolbar-group fluxio-image-editor__toolbar-group--end" role="group">
+    @if (presentation.showSave()) {
+      <div class="fluxio-image-editor__export">
+        <button
+          type="button"
+          class="fluxio-btn fluxio-btn--primary fluxio-image-editor__export-trigger"
+          (click)="toolbar.toggleExportMenu($event)"
+          [disabled]="!presentation.readyState()"
+          [attr.aria-expanded]="presentation.exportMenuOpen()"
+          aria-haspopup="menu"
+          [attr.aria-label]="presentation.t('export.dialog')"
+        >
+          {{ presentation.t('export.dialog') }}
+          <span class="fluxio-image-editor__export-caret" aria-hidden="true">▾</span>
+        </button>
+        @if (presentation.exportMenuOpen()) {
+          <ul class="fluxio-image-editor__export-menu" role="menu" (click)="$event.stopPropagation()">
+            <li role="none">
+              <button
+                type="button"
+                role="menuitem"
+                [disabled]="!presentation.dirtyState()"
+                (click)="toolbar.chooseExportFormat('png', $event)"
+              >
+                {{ presentation.t('export.png') }}
+              </button>
+            </li>
+            <li role="none">
+              <button
+                type="button"
+                role="menuitem"
+                [disabled]="!presentation.dirtyState()"
+                (click)="toolbar.chooseExportFormat('jpeg', $event)"
+              >
+                {{ presentation.t('export.jpeg') }}
+              </button>
+            </li>
+            <li role="none">
+              <button
+                type="button"
+                role="menuitem"
+                [disabled]="!presentation.dirtyState()"
+                (click)="toolbar.chooseExportFormat('webp', $event)"
+              >
+                {{ presentation.t('export.webp') }}
+              </button>
+            </li>
+            @if (presentation.batchExportAvailable()) {
+              <li class="fluxio-image-editor__export-menu-sep" role="separator"></li>
+              <li role="none">
+                <button
+                  type="button"
+                  role="menuitem"
+                  [disabled]="!presentation.readyState()"
+                  (click)="toolbar.openBatchExportFromMenu($event)"
+                >
+                  {{ presentation.t('batch-export.dialog') }}
+                </button>
+              </li>
+            }
+            <li class="fluxio-image-editor__export-menu-sep" role="separator"></li>
+            <li role="none">
+              <button type="button" role="menuitem" (click)="toolbar.chooseDesignExport($event)">
+                {{ presentation.t('persistence.export') }}
+              </button>
+            </li>
+            <li role="none">
+              <button type="button" role="menuitem" (click)="toolbar.chooseDesignLoad($event)">
+                {{ presentation.t('persistence.load') }}
+              </button>
+            </li>
+          </ul>
+        }
+      </div>
+    }
+    <button type="button" class="fluxio-btn fluxio-btn--quiet" (click)="closeRequest.emit()">
+      {{ presentation.t('toolbar.close') }}
+    </button>
+  </div>
+</header>

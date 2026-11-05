@@ -1,0 +1,57 @@
+{
+  "kind": "fluxio-image-editor-design",
+  "schemaVersion": 1,
+  "exportedAt": "2026-07-23T17:36:11.488Z",
+  "document": {
+    "schemaVersion": 1,
+    "source": {
+      "kind": "url",
+      "id": "asset-2",
+      "url": "/fixtures/sample.jpg"
+    },
+    "sourceSize": {
+      "width": 1920,
+      "height": 1275
+    },
+    "crop": null,
+    "transform": {
+      "rotationDegrees": 0,
+      "flipX": false,
+      "flipY": false
+    },
+    "adjustments": {
+      "brightness": 0,
+      "contrast": 0,
+      "hue": 0,
+      "saturation": 0,
+      "value": 0,
+      "warmth": 0,
+      "blur": 0
+    },
+    "effects": {
+      "threshold": 0,
+      "posterize": 0,
+      "pixelate": 0,
+      "noise": 0
+    },
+    "filters": {
+      "preset": "technicolor"
+    },
+    "watermark": {
+      "mode": "none",
+      "position": "bottom-right",
+      "opacity": 0.55,
+      "scale": 1,
+      "text": "Watermark",
+      "fill": "#ffffff",
+      "fontFamily": "sans-serif",
+      "imageSrc": ""
+    },
+    "annotations": [],
+    "output": {
+      "width": 1920,
+      "height": 1275
+    },
+    "pluginState": {}
+  }
+}

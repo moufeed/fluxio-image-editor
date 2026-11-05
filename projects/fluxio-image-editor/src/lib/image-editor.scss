@@ -1,0 +1,3034 @@
+.fluxio-image-editor {
+  /* Surfaces — charcoal tool chrome (not purple / cream defaults) */
+  --fluxio-bg: #0e1116;
+  --fluxio-bg-elevated: #171b22;
+  --fluxio-bg-panel: #12161d;
+  --fluxio-border: #2a313c;
+  --fluxio-border-strong: #3d4654;
+  --fluxio-text: #eef2f7;
+  --fluxio-muted: #9aa6b5;
+  --fluxio-accent: #3aa0ff;
+  --fluxio-accent-hover: #62b4ff;
+  --fluxio-accent-contrast: #041018;
+  --fluxio-danger: #ff8f8f;
+  --fluxio-warn: #e6b35c;
+  --fluxio-ok: #5dce9a;
+  --fluxio-control-bg: #1c222c;
+  --fluxio-control-border: #3a4452;
+  --fluxio-focus: #3aa0ff;
+  --fluxio-shadow: 0 10px 28px rgb(0 0 0 / 35%);
+  --fluxio-shadow-soft: 0 1px 0 rgb(255 255 255 / 4%) inset;
+  --fluxio-radius: 0.5rem;
+  --fluxio-radius-sm: 0.375rem;
+  --fluxio-space-1: 0.25rem;
+  --fluxio-space-2: 0.5rem;
+  --fluxio-space-3: 0.75rem;
+  --fluxio-space-4: 1rem;
+  --fluxio-control-h: 2.25rem;
+  --fluxio-rail-w: 7rem;
+  --fluxio-subrail-w: 4.75rem;
+  --fluxio-icon: 1.125rem;
+  --fluxio-font: 'IBM Plex Sans', 'Segoe UI', 'Helvetica Neue', sans-serif;
+  --fluxio-canvas-a: #1a1f27;
+  --fluxio-canvas-b: #14181f;
+  --fluxio-range-track: color-mix(in srgb, var(--fluxio-control-border) 70%, var(--fluxio-control-bg));
+  --fluxio-range-thumb: #f4f8fc;
+  --fluxio-range-thumb-border: color-mix(in srgb, var(--fluxio-accent) 55%, var(--fluxio-border-strong));
+  --fluxio-range-h: 0.375rem;
+  --fluxio-range-thumb-size: 1.125rem;
+
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 420px;
+  color: var(--fluxio-text);
+  font-family: var(--fluxio-font);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  position: relative;
+  box-sizing: border-box;
+  user-select: none;
+  -webkit-user-select: none;
+  /* Embed-aware breakpoints: shell reflow uses @container fluxio-editor, not viewport. */
+  container-type: inline-size;
+  container-name: fluxio-editor;
+}
+
+.fluxio-image-editor *,
+.fluxio-image-editor *::before,
+.fluxio-image-editor *::after {
+  box-sizing: border-box;
+}
+
+.fluxio-image-editor input,
+.fluxio-image-editor textarea,
+.fluxio-image-editor [contenteditable='true'],
+.fluxio-text-inplace-editor {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.fluxio-image-editor[data-theme='light'] {
+  --fluxio-bg: #e8edf3;
+  --fluxio-bg-elevated: #ffffff;
+  --fluxio-bg-panel: #f4f7fb;
+  --fluxio-border: #cfd8e3;
+  --fluxio-border-strong: #aeb9c7;
+  --fluxio-text: #15202b;
+  --fluxio-muted: #5b6878;
+  --fluxio-accent: #0a66c2;
+  --fluxio-accent-hover: #0856a5;
+  --fluxio-accent-contrast: #ffffff;
+  --fluxio-danger: #b42318;
+  --fluxio-warn: #9a6700;
+  --fluxio-ok: #0f7b4c;
+  --fluxio-control-bg: #ffffff;
+  --fluxio-control-border: #b8c3d1;
+  --fluxio-focus: #0a66c2;
+  --fluxio-shadow: 0 12px 28px rgb(21 32 43 / 14%);
+  --fluxio-canvas-a: #d8dee7;
+  --fluxio-canvas-b: #c9d1dc;
+  --fluxio-range-track: #d5dde7;
+  --fluxio-range-thumb: #ffffff;
+  --fluxio-range-thumb-border: color-mix(in srgb, var(--fluxio-accent) 45%, var(--fluxio-border-strong));
+}
+
+.fluxio-image-editor[data-theme='dark'] {
+  --fluxio-bg: #0e1116;
+  --fluxio-bg-elevated: #171b22;
+  --fluxio-bg-panel: #12161d;
+  --fluxio-border: #2a313c;
+  --fluxio-border-strong: #3d4654;
+  --fluxio-text: #eef2f7;
+  --fluxio-muted: #9aa6b5;
+  --fluxio-accent: #3aa0ff;
+  --fluxio-accent-hover: #62b4ff;
+  --fluxio-accent-contrast: #041018;
+  --fluxio-danger: #ff8f8f;
+  --fluxio-warn: #e6b35c;
+  --fluxio-ok: #5dce9a;
+  --fluxio-control-bg: #1c222c;
+  --fluxio-control-border: #3a4452;
+  --fluxio-focus: #3aa0ff;
+  --fluxio-shadow: 0 10px 28px rgb(0 0 0 / 35%);
+  --fluxio-canvas-a: #1a1f27;
+  --fluxio-canvas-b: #14181f;
+}
+
+/*
+ * Custom themes: set config.theme = 'custom', then either:
+ * 1) Host CSS — `.fluxio-image-editor[data-theme='custom']` or `.fluxio-image-editor.<themeClass>`
+ * 2) config.themeTokens — inline CSS variables (runtime theme maps)
+ * Base tokens inherit from `.fluxio-image-editor` (dark defaults) until overridden.
+ */
+.fluxio-image-editor[data-theme='custom'] {
+  /* intentionally empty — host CSS / themeTokens supply the palette */
+}
+
+.fluxio-image-editor__shell {
+  --fluxio-controls-panel-w: 15.5rem;
+  --fluxio-side-panel-w: 16.5rem;
+  --fluxio-controls-section-bg: color-mix(in srgb, var(--fluxio-control-bg) 38%, transparent);
+  --fluxio-controls-section-border: color-mix(in srgb, var(--fluxio-border) 82%, transparent);
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  grid-template-areas:
+    'toolbar toolbar toolbar'
+    'utilibar status status'
+    'utilibar controls viewport';
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(110% 70% at 0% 0%, color-mix(in srgb, var(--fluxio-accent) 7%, transparent), transparent 46%),
+    linear-gradient(165deg, var(--fluxio-bg) 0%, var(--fluxio-bg-panel) 100%);
+  border: 1px solid var(--fluxio-border);
+  border-radius: calc(var(--fluxio-radius) + 2px);
+  box-shadow: var(--fluxio-shadow-soft);
+}
+
+.fluxio-image-editor__toolbar {
+  grid-area: toolbar;
+}
+
+.fluxio-image-editor__status {
+  grid-area: status;
+}
+
+/* Canvas + docked Layers/History drawer share the viewport track. */
+.fluxio-image-editor__stage {
+  grid-area: viewport;
+  display: flex;
+  align-items: stretch;
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.fluxio-image-editor__viewport-host {
+  flex: 1 1 auto;
+  position: relative;
+  z-index: 1;
+  min-height: 0;
+  min-width: 0;
+  display: grid;
+  overflow: hidden;
+}
+
+/* Host only — bar chrome lives on CanvasSelectionToolbarComponent (encapsulation). */
+.fluxio-canvas-selection-toolbar-host {
+  position: absolute;
+  z-index: 6;
+  pointer-events: none;
+  /* Anchor is above the selection top; lift the bar fully above that point. */
+  transform: translate(-50%, calc(-100% - 6px));
+}
+
+.fluxio-image-editor__viewport {
+  grid-area: 1 / 1;
+  min-height: 0;
+  min-width: 0;
+}
+
+.fluxio-markup-ruler {
+  position: absolute;
+  z-index: 5;
+  pointer-events: auto;
+  background:
+    repeating-linear-gradient(
+      to right,
+      transparent 0,
+      transparent 9px,
+      color-mix(in srgb, var(--fluxio-color-border, #666) 70%, transparent) 9px,
+      color-mix(in srgb, var(--fluxio-color-border, #666) 70%, transparent) 10px
+    ),
+    color-mix(in srgb, var(--fluxio-color-surface, #1a1a1a) 88%, transparent);
+  cursor: crosshair;
+}
+
+.fluxio-markup-ruler--top {
+  top: 0;
+  left: 18px;
+  right: 0;
+  height: 18px;
+}
+
+.fluxio-markup-ruler--left {
+  top: 18px;
+  left: 0;
+  bottom: 0;
+  width: 18px;
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 9px,
+      color-mix(in srgb, var(--fluxio-color-border, #666) 70%, transparent) 9px,
+      color-mix(in srgb, var(--fluxio-color-border, #666) 70%, transparent) 10px
+    ),
+    color-mix(in srgb, var(--fluxio-color-surface, #1a1a1a) 88%, transparent);
+}
+
+/* Utilibar left (default) + controls left → rail | options | canvas */
+.fluxio-image-editor__shell[data-utils-pos='left'][data-controls-pos='left'] {
+  grid-template-columns: auto auto minmax(0, 1fr);
+  grid-template-areas:
+    'toolbar toolbar toolbar'
+    'utilibar status status'
+    'utilibar controls viewport';
+}
+
+/* Utilibar left + controls right → rail | canvas | options */
+.fluxio-image-editor__shell[data-utils-pos='left'][data-controls-pos='right'] {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    'toolbar toolbar toolbar'
+    'utilibar status controls'
+    'utilibar viewport controls';
+}
+
+/* Utilibar right + controls right → canvas | options | rail */
+.fluxio-image-editor__shell[data-utils-pos='right'][data-controls-pos='right'] {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-areas:
+    'toolbar toolbar toolbar'
+    'status status utilibar'
+    'viewport controls utilibar';
+}
+
+/* Utilibar right + controls left → options | canvas | rail */
+.fluxio-image-editor__shell[data-utils-pos='right'][data-controls-pos='left'] {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    'toolbar toolbar toolbar'
+    'controls status utilibar'
+    'controls viewport utilibar';
+}
+
+.fluxio-image-editor__shell[data-toolbar-pos='bottom'] {
+  grid-template-rows: auto 1fr auto;
+}
+
+.fluxio-image-editor__shell[data-toolbar-pos='bottom'][data-utils-pos='left'][data-controls-pos='left'] {
+  grid-template-areas:
+    'utilibar status status'
+    'utilibar controls viewport'
+    'toolbar toolbar toolbar';
+}
+
+.fluxio-image-editor__shell[data-toolbar-pos='bottom'][data-utils-pos='left'][data-controls-pos='right'] {
+  grid-template-areas:
+    'utilibar status controls'
+    'utilibar viewport controls'
+    'toolbar toolbar toolbar';
+}
+
+.fluxio-image-editor__shell[data-toolbar-pos='bottom'][data-utils-pos='right'][data-controls-pos='right'] {
+  grid-template-areas:
+    'status status utilibar'
+    'viewport controls utilibar'
+    'toolbar toolbar toolbar';
+}
+
+.fluxio-image-editor__shell[data-toolbar-pos='bottom'][data-utils-pos='right'][data-controls-pos='left'] {
+  grid-template-areas:
+    'controls status utilibar'
+    'controls viewport utilibar'
+    'toolbar toolbar toolbar';
+}
+
+.fluxio-image-editor__shell[data-toolbar-pos='bottom'] .fluxio-image-editor__toolbar {
+  border-bottom: 0;
+  border-top: 1px solid var(--fluxio-border);
+}
+
+.fluxio-image-editor__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--fluxio-space-2);
+  padding: var(--fluxio-space-2) var(--fluxio-space-3);
+  border-bottom: 1px solid var(--fluxio-border);
+  align-items: center;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--fluxio-bg-elevated) 96%, white 4%), var(--fluxio-bg-elevated));
+}
+
+.fluxio-image-editor__toolbar-group {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--fluxio-space-2);
+  padding-inline-end: var(--fluxio-space-3);
+  border-inline-end: 1px solid var(--fluxio-border);
+}
+
+.fluxio-image-editor__toolbar-group--end {
+  border-inline-end: 0;
+  padding-inline-end: 0;
+  margin-inline-start: auto;
+}
+
+.fluxio-image-editor__toolbar-spacer {
+  flex: 1 1 auto;
+  min-width: var(--fluxio-space-2);
+}
+
+.fluxio-image-editor__transform {
+  gap: var(--fluxio-space-1);
+}
+
+.fluxio-image-editor__angle {
+  margin: 0;
+  min-height: var(--fluxio-control-h);
+}
+
+.fluxio-image-editor__angle input {
+  width: 3.5rem;
+}
+
+.fluxio-btn {
+  appearance: none;
+  border: 1px solid var(--fluxio-control-border);
+  background: var(--fluxio-control-bg);
+  color: inherit;
+  padding: 0 var(--fluxio-space-2);
+  min-height: var(--fluxio-control-h);
+  min-width: var(--fluxio-control-h);
+  border-radius: var(--fluxio-radius-sm);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease,
+    opacity 160ms ease;
+}
+
+.fluxio-btn__icon {
+  flex: 0 0 auto;
+  display: block;
+  width: var(--fluxio-icon);
+  height: var(--fluxio-icon);
+}
+
+.fluxio-btn__label {
+  white-space: nowrap;
+}
+
+.fluxio-btn--icon-only {
+  padding-inline: 0;
+  width: var(--fluxio-control-h);
+}
+
+.fluxio-btn:hover:not(:disabled) {
+  border-color: var(--fluxio-border-strong);
+  background: color-mix(in srgb, var(--fluxio-control-bg) 70%, var(--fluxio-accent) 12%);
+}
+
+.fluxio-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.fluxio-btn:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.fluxio-btn--primary,
+.fluxio-btn--done {
+  background: var(--fluxio-accent);
+  border-color: transparent;
+  color: var(--fluxio-accent-contrast);
+  font-weight: 600;
+}
+
+.fluxio-btn--primary:hover:not(:disabled),
+.fluxio-btn--done:hover:not(:disabled) {
+  background: var(--fluxio-accent-hover);
+  border-color: transparent;
+}
+
+.fluxio-btn--quiet,
+.fluxio-btn--cancel,
+.fluxio-btn--clear {
+  background: transparent;
+}
+
+.fluxio-btn--cancel:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--fluxio-control-bg) 70%, var(--fluxio-accent) 10%);
+  border-color: transparent;
+  color: var(--fluxio-text);
+}
+
+.fluxio-btn--clear:hover:not(:disabled) {
+  border-color: transparent;
+  background: color-mix(in srgb, var(--fluxio-danger) 12%, transparent);
+  color: var(--fluxio-danger);
+}
+
+.fluxio-btn--active {
+  border-color: color-mix(in srgb, var(--fluxio-accent) 55%, var(--fluxio-control-border));
+  background: color-mix(in srgb, var(--fluxio-accent) 18%, var(--fluxio-control-bg));
+  color: var(--fluxio-text);
+  box-shadow: inset 0 -2px 0 var(--fluxio-accent);
+  font-weight: 700;
+}
+
+.fluxio-image-editor__zoom {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  border: 1px solid var(--fluxio-control-border);
+  background: var(--fluxio-control-bg);
+  border-radius: var(--fluxio-radius-sm);
+  min-height: var(--fluxio-control-h);
+  overflow: visible;
+}
+
+.fluxio-image-editor__zoom-btn,
+.fluxio-image-editor__zoom-percent {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  min-height: calc(var(--fluxio-control-h) - 2px);
+  min-width: 2.25rem;
+  padding: 0 0.4rem;
+  font: inherit;
+  font-weight: 600;
+  transition: background-color 160ms ease;
+}
+
+.fluxio-image-editor__zoom-percent {
+  min-width: 3.75rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  border-inline: 1px solid var(--fluxio-border);
+}
+
+.fluxio-image-editor__zoom-btn:hover:not(:disabled),
+.fluxio-image-editor__zoom-percent:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--fluxio-accent) 14%, transparent);
+}
+
+.fluxio-image-editor__zoom-percent-wrap {
+  position: relative;
+}
+
+.fluxio-image-editor__zoom-menu {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  inset-inline-start: 50%;
+  translate: -50% 0;
+  z-index: 6;
+  margin: 0;
+  padding: var(--fluxio-space-1);
+  list-style: none;
+  min-width: 9rem;
+  background: var(--fluxio-bg-elevated);
+  border: 1px solid var(--fluxio-border);
+  border-radius: var(--fluxio-radius-sm);
+  box-shadow: var(--fluxio-shadow);
+}
+
+.fluxio-image-editor__zoom-menu button {
+  display: block;
+  width: 100%;
+  text-align: start;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0.45rem 0.7rem;
+  cursor: pointer;
+  min-height: 2.25rem;
+  border-radius: calc(var(--fluxio-radius-sm) - 2px);
+  font: inherit;
+}
+
+.fluxio-image-editor__zoom-menu button:hover,
+.fluxio-image-editor__zoom-menu button:focus-visible {
+  background: color-mix(in srgb, var(--fluxio-accent) 16%, transparent);
+}
+
+.fluxio-image-editor__export {
+  position: relative;
+  display: inline-flex;
+}
+
+.fluxio-image-editor__export-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.fluxio-image-editor__export-caret {
+  font-size: 0.75rem;
+  opacity: 0.85;
+}
+
+.fluxio-image-editor__export-menu {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  inset-inline-end: 0;
+  z-index: 6;
+  margin: 0;
+  padding: var(--fluxio-space-1);
+  list-style: none;
+  min-width: 10rem;
+  background: var(--fluxio-bg-elevated);
+  border: 1px solid var(--fluxio-border);
+  border-radius: var(--fluxio-radius-sm);
+  box-shadow: var(--fluxio-shadow);
+}
+
+.fluxio-image-editor__export-menu-sep {
+  height: 1px;
+  margin: 0.25rem 0.35rem;
+  background: var(--fluxio-border);
+  list-style: none;
+}
+
+.fluxio-image-editor__export-menu button {
+  display: block;
+  width: 100%;
+  text-align: start;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0.45rem 0.7rem;
+  cursor: pointer;
+  min-height: 2.25rem;
+  border-radius: calc(var(--fluxio-radius-sm) - 2px);
+  font: inherit;
+}
+
+.fluxio-image-editor__export-menu button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.fluxio-image-editor__export-menu button:hover,
+.fluxio-image-editor__export-menu button:focus-visible {
+  background: color-mix(in srgb, var(--fluxio-accent) 16%, transparent);
+}
+
+.fluxio-image-editor__zoom button:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.fluxio-btn:focus-visible,
+.fluxio-image-editor__zoom-btn:focus-visible,
+.fluxio-image-editor__zoom-percent:focus-visible,
+.fluxio-image-editor__zoom-menu button:focus-visible,
+.fluxio-image-editor__export-menu button:focus-visible,
+.fluxio-field input:focus-visible,
+.fluxio-field select:focus-visible,
+.fluxio-check input:focus-visible,
+.fluxio-range:focus-visible {
+  outline: 2px solid var(--fluxio-focus);
+  outline-offset: 2px;
+}
+
+.fluxio-image-editor__status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--fluxio-space-2);
+  align-items: center;
+  justify-content: space-between;
+  min-height: 2.25rem;
+  padding: 0.35rem var(--fluxio-space-3);
+  border-bottom: 1px solid var(--fluxio-border);
+  background: color-mix(in srgb, var(--fluxio-bg-panel) 92%, black 8%);
+}
+
+.fluxio-image-editor__status-main,
+.fluxio-image-editor__status-meta {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--fluxio-space-2);
+}
+
+/* Shared Layers / History drawer — docked beside the canvas, like the inspector */
+fluxio-side-panel,
+.fluxio-side-panel-host {
+  z-index: 8;
+  display: flex;
+  flex: 0 0 auto;
+  min-height: 0;
+  max-width: min(19rem, 44%);
+}
+
+.fluxio-side-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fluxio-space-2);
+  width: var(--fluxio-side-panel-w, 16.5rem);
+  max-width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: var(--fluxio-space-2) var(--fluxio-space-3);
+  border-inline-start: 1px solid var(--fluxio-border);
+  background: var(--fluxio-bg-elevated);
+  box-shadow: inset 1px 0 0 color-mix(in srgb, var(--fluxio-border) 35%, transparent);
+}
+
+.fluxio-side-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--fluxio-space-2);
+  flex: 0 0 auto;
+}
+
+.fluxio-side-panel__tabs {
+  display: inline-flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0.15rem;
+  gap: 0.15rem;
+  border: 1px solid var(--fluxio-border);
+  border-radius: var(--fluxio-radius-sm);
+  background: color-mix(in srgb, var(--fluxio-control-bg) 55%, transparent);
+}
+
+.fluxio-side-panel__tab {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 1.75rem;
+  padding: 0.25rem 0.45rem;
+  border: 0;
+  border-radius: calc(var(--fluxio-radius-sm) - 1px);
+  background: transparent;
+  color: var(--fluxio-muted);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+
+.fluxio-side-panel__tab:hover {
+  color: var(--fluxio-text);
+}
+
+.fluxio-side-panel__tab:focus-visible {
+  outline: 2px solid var(--fluxio-focus);
+  outline-offset: 1px;
+}
+
+.fluxio-side-panel__tab--active {
+  background: color-mix(in srgb, var(--fluxio-accent) 16%, var(--fluxio-control-bg));
+  color: var(--fluxio-text);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fluxio-accent) 40%, transparent);
+}
+
+.fluxio-side-panel__body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+.fluxio-side-panel__pane {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fluxio-space-2);
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+fluxio-layers-panel,
+.fluxio-layers-panel-content,
+fluxio-history-panel,
+.fluxio-history-panel-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fluxio-space-2);
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.fluxio-layers-panel__empty {
+  margin: 0;
+  padding: var(--fluxio-space-2) 0;
+  color: var(--fluxio-muted);
+  font-size: 0.8rem;
+}
+
+/* Override shared .fluxio-annotation-list max-height: 6rem (tool inspectors). */
+.fluxio-layers-panel__list.fluxio-annotation-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+  overflow-y: auto;
+}
+
+.fluxio-layers-panel__footer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fluxio-space-2);
+  flex: 0 0 auto;
+  padding-top: var(--fluxio-space-1);
+  border-top: 1px solid color-mix(in srgb, var(--fluxio-border) 70%, transparent);
+}
+
+.fluxio-layers-panel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--fluxio-space-2);
+}
+
+.fluxio-layers-panel__actions .fluxio-btn {
+  flex: 1 1 auto;
+}
+
+.fluxio-layers-panel__blend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.fluxio-layers-panel__blend .fluxio-select {
+  width: 100%;
+}
+
+.fluxio-layers-panel__rename {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  padding: 0.1rem 0.3rem;
+  border: 1px solid var(--fluxio-focus);
+  border-radius: var(--fluxio-radius-sm);
+  background: var(--fluxio-control-bg);
+  color: var(--fluxio-text);
+  font: inherit;
+  font-size: 0.75rem;
+}
+
+.fluxio-layers-panel__collapse {
+  flex: 0 0 auto;
+  width: 1.25rem;
+  min-width: 1.25rem;
+}
+
+.fluxio-annotation-list__layer--hidden .fluxio-annotation-list__layer-name {
+  opacity: 0.55;
+}
+
+.fluxio-annotation-list__layer--locked .fluxio-annotation-list__layer-name::after {
+  content: '';
+}
+
+.fluxio-annotation-list__layer--group {
+  font-weight: 600;
+}
+
+.fluxio-annotation-list__layer--synthetic {
+  border-top: 1px dashed color-mix(in srgb, var(--fluxio-border) 80%, transparent);
+  margin-top: 0.15rem;
+  padding-top: 0.35rem;
+}
+
+.fluxio-history-panel__empty {
+  margin: 0;
+  padding: var(--fluxio-space-2) 0;
+  color: var(--fluxio-muted);
+  font-size: 0.8rem;
+}
+
+/* Fills the docked drawer; the flex chain above caps it, not a fixed max-height. */
+.fluxio-history-panel__timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding-block: 0.1rem;
+}
+
+.fluxio-history-panel__entry {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  min-height: 1.85rem;
+  padding: 0.2rem 0.4rem 0.2rem 0.55rem;
+  border: 0;
+  border-radius: var(--fluxio-radius-sm);
+  background: transparent;
+  color: var(--fluxio-muted);
+  font: inherit;
+  cursor: pointer;
+  text-align: start;
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
+}
+
+.fluxio-history-panel__entry::before {
+  content: '';
+  position: absolute;
+  inset: 2px auto 2px 0;
+  width: 2px;
+  border-radius: 0 1px 1px 0;
+  background: transparent;
+  transition: background-color 120ms ease;
+}
+
+.fluxio-history-panel__entry:hover {
+  background: color-mix(in srgb, var(--fluxio-control-bg) 60%, transparent);
+  color: var(--fluxio-text);
+}
+
+.fluxio-history-panel__entry:focus-visible {
+  outline: 2px solid var(--fluxio-focus);
+  outline-offset: 2px;
+}
+
+.fluxio-history-panel__entry--current {
+  background: color-mix(in srgb, var(--fluxio-accent) 12%, var(--fluxio-control-bg));
+  color: var(--fluxio-text);
+}
+
+.fluxio-history-panel__entry--current::before {
+  background: var(--fluxio-accent);
+}
+
+.fluxio-history-panel__entry--future {
+  opacity: 0.55;
+}
+
+.fluxio-history-panel__index {
+  flex: 0 0 auto;
+  color: var(--fluxio-muted);
+  font-size: 0.6rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  min-width: 1rem;
+}
+
+.fluxio-history-panel__main {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.4rem;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.fluxio-history-panel__label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.fluxio-history-panel__time {
+  flex: 0 0 auto;
+  color: var(--fluxio-muted);
+  font-size: 0.62rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.fluxio-meta {
+  color: var(--fluxio-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.fluxio-meta--mono {
+  font-variant-numeric: tabular-nums;
+}
+
+.fluxio-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 1.5rem;
+  padding: 0 0.5rem;
+  border-radius: var(--fluxio-radius-sm);
+  border: 1px solid transparent;
+  background: color-mix(in srgb, var(--fluxio-control-bg) 70%, transparent);
+  color: var(--fluxio-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.fluxio-chip--mono {
+  font-variant-numeric: tabular-nums;
+}
+
+.fluxio-chip--ok {
+  color: var(--fluxio-ok);
+  border-color: color-mix(in srgb, var(--fluxio-ok) 35%, var(--fluxio-border));
+}
+
+.fluxio-chip--busy {
+  color: var(--fluxio-accent);
+  border-color: color-mix(in srgb, var(--fluxio-accent) 35%, var(--fluxio-border));
+}
+
+.fluxio-chip--warn {
+  color: var(--fluxio-warn);
+  border-color: color-mix(in srgb, var(--fluxio-warn) 40%, var(--fluxio-border));
+}
+
+.fluxio-chip--danger {
+  color: var(--fluxio-danger);
+  border-color: color-mix(in srgb, var(--fluxio-danger) 40%, var(--fluxio-border));
+}
+
+.fluxio-image-editor__controls-group {
+  --fluxio-controls-gap: var(--fluxio-space-3);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: 'main actions';
+  align-items: start;
+  gap: var(--fluxio-controls-gap);
+  padding: var(--fluxio-space-3);
+  min-height: calc(var(--fluxio-control-h) + var(--fluxio-space-4));
+  overflow: visible;
+}
+
+.fluxio-image-editor__controls-main {
+  grid-area: main;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--fluxio-space-2) var(--fluxio-space-3);
+  min-width: 0;
+}
+
+.fluxio-image-editor__controls-main--toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--fluxio-space-2) var(--fluxio-space-3);
+  width: 100%;
+}
+
+/* Inspector / settings panels: vertical section stack (not a scattered auto-fill grid). */
+.fluxio-image-editor__controls-main--form {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--fluxio-space-3);
+  width: 100%;
+  min-width: 0;
+}
+
+.fluxio-image-editor__controls-main--filters {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--fluxio-space-2);
+  width: 100%;
+  min-width: 0;
+}
+
+.fluxio-image-editor__controls-lead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--fluxio-space-2) var(--fluxio-space-3);
+  width: 100%;
+  min-width: 0;
+}
+
+.fluxio-image-editor__controls-lead .fluxio-image-editor__controls-title {
+  margin-inline-end: 0;
+  min-width: 0;
+}
+
+.fluxio-image-editor__controls-lead .fluxio-btn,
+.fluxio-image-editor__controls-lead .fluxio-btn--file {
+  margin-inline-start: auto;
+}
+
+/* Shared control section primitive (inspector / settings grouping). */
+.fluxio-control-section,
+.fluxio-image-editor__controls-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fluxio-space-2);
+  width: 100%;
+  min-width: 0;
+  padding: var(--fluxio-space-3);
+  border: 1px solid var(--fluxio-controls-section-border);
+  border-radius: var(--fluxio-radius);
+  background: var(--fluxio-controls-section-bg);
+}
+
+.fluxio-control-section--quiet {
+  padding: var(--fluxio-space-2) var(--fluxio-space-3);
+  border-style: dashed;
+  background: color-mix(in srgb, var(--fluxio-control-bg) 22%, transparent);
+}
+
+.fluxio-control-section--flush {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  border-radius: 0;
+}
+
+.fluxio-control-section__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--fluxio-space-2);
+  min-width: 0;
+}
+
+.fluxio-control-section__title {
+  color: var(--fluxio-muted);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+.fluxio-control-section__value {
+  color: var(--fluxio-text);
+  font-size: 0.75rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.fluxio-control-section__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fluxio-space-3);
+  min-width: 0;
+}
+
+.fluxio-control-section__body--grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--fluxio-space-2) var(--fluxio-space-3);
+}
+
+.fluxio-control-section__body--grid > .fluxio-field--span-2,
+.fluxio-control-section__body--grid > .fluxio-field-row,
+.fluxio-control-section__body--grid > .fluxio-geometry-grid,
+.fluxio-control-section__body--grid > .fluxio-order-actions,
+.fluxio-control-section__body--grid > fluxio-order-actions,
+.fluxio-control-section__body--grid > .fluxio-image-editor__controls-hint,
+.fluxio-control-section__body--grid > fluxio-color-alpha-field,
+.fluxio-control-section__body--grid > .fluxio-segmented,
+.fluxio-control-section__body--grid > .fluxio-overlay-gallery,
+.fluxio-control-section__body--grid > .fluxio-slider {
+  grid-column: 1 / -1;
+}
+
+.fluxio-control-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--fluxio-space-2) var(--fluxio-space-3);
+  min-width: 0;
+}
+
+.fluxio-control-row--compact {
+  gap: var(--fluxio-space-2);
+}
+
+.fluxio-filter-thumbs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(4.5rem, 1fr));
+  gap: var(--fluxio-space-2);
+  max-width: 100%;
+  padding-bottom: 0.15rem;
+}
+
+.fluxio-filter-thumbs__item {
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.3rem;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-align: center;
+}
+
+.fluxio-filter-thumbs__item img,
+.fluxio-filter-thumbs__placeholder {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  height: auto;
+  border: 1px solid var(--fluxio-border);
+  border-radius: var(--fluxio-radius-sm, 0.35rem);
+  object-fit: cover;
+  background: var(--fluxio-surface-2, transparent);
+}
+
+.fluxio-filter-thumbs__label {
+  font-size: 0.7rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fluxio-filter-thumbs__item--active img,
+.fluxio-filter-thumbs__item--active .fluxio-filter-thumbs__placeholder {
+  outline: 2px solid var(--fluxio-accent, #8ec8ff);
+  outline-offset: 1px;
+}
+
+.fluxio-filter-thumbs__item--active .fluxio-filter-thumbs__label {
+  color: var(--fluxio-accent, #8ec8ff);
+  font-weight: 600;
+}
+
+.fluxio-filter-thumbs__item:focus-visible {
+  outline: 2px solid var(--fluxio-focus);
+  outline-offset: 2px;
+  border-radius: var(--fluxio-radius-sm);
+}
+
+/* ── Figma-style layers panel ── */
+
+.fluxio-annotation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  max-height: 6rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+}
+
+.fluxio-annotation-list__layer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  min-width: 0;
+  min-height: 2rem;
+  padding: 0.2rem 0.4rem;
+  border: 0;
+  border-radius: var(--fluxio-radius-sm);
+  background: transparent;
+  color: var(--fluxio-muted);
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
+}
+
+/* Left accent bar for selection */
+.fluxio-annotation-list__layer::before {
+  content: '';
+  position: absolute;
+  inset: 2px auto 2px 0;
+  width: 2px;
+  border-radius: 0 1px 1px 0;
+  background: transparent;
+  transition: background-color 120ms ease;
+}
+
+.fluxio-annotation-list__layer:hover {
+  background: color-mix(in srgb, var(--fluxio-control-bg) 60%, transparent);
+  color: var(--fluxio-text);
+}
+
+.fluxio-annotation-list__layer--active {
+  background: color-mix(in srgb, var(--fluxio-accent) 12%, var(--fluxio-control-bg));
+  color: var(--fluxio-text);
+}
+
+.fluxio-annotation-list__layer--active::before {
+  background: var(--fluxio-accent);
+}
+
+.fluxio-annotation-list__layer:focus-visible {
+  outline: 1px solid var(--fluxio-focus);
+  outline-offset: -1px;
+}
+
+/* Layer preview (icon / swatch / thumbnail) */
+.fluxio-annotation-list__layer-preview {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 3px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--fluxio-control-bg) 50%, transparent);
+}
+
+.fluxio-annotation-list__layer-preview--icon {
+  font-size: 0.6rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--fluxio-muted);
+}
+
+.fluxio-annotation-list__layer--active .fluxio-annotation-list__layer-preview--icon {
+  color: var(--fluxio-accent);
+}
+
+.fluxio-annotation-list__layer-preview--swatch {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--fluxio-border) 60%, transparent);
+}
+
+.fluxio-annotation-list__layer-preview--thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Layer name */
+.fluxio-annotation-list__layer-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.3;
+}
+
+/* Actions row (right side, shown on hover/active) */
+.fluxio-annotation-list__layer-actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.fluxio-annotation-list__layer:hover .fluxio-annotation-list__layer-actions,
+.fluxio-annotation-list__layer--active .fluxio-annotation-list__layer-actions,
+.fluxio-annotation-list__layer:focus-within .fluxio-annotation-list__layer-actions {
+  opacity: 1;
+}
+
+.fluxio-annotation-list__layer-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--fluxio-muted);
+  font-size: 0.75rem;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
+}
+
+.fluxio-annotation-list__layer-action:hover {
+  background: color-mix(in srgb, var(--fluxio-control-bg) 70%, transparent);
+  color: var(--fluxio-text);
+}
+
+.fluxio-annotation-list__layer-action--delete:hover {
+  background: color-mix(in srgb, var(--fluxio-danger) 20%, transparent);
+  color: var(--fluxio-danger);
+}
+
+.fluxio-geometry-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--fluxio-space-2);
+  width: 100%;
+}
+
+.fluxio-field--compact {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.fluxio-field--compact .fluxio-field__label {
+  font-size: 0.75rem;
+}
+
+.fluxio-field--compact input[type='number'] {
+  min-width: 0;
+  width: 100%;
+}
+
+.fluxio-field__control {
+  display: flex;
+  align-items: stretch;
+  min-width: 0;
+  width: 100%;
+}
+
+.fluxio-field__control input,
+.fluxio-field__control select {
+  flex: 1 1 auto;
+  min-width: 0;
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+}
+
+.fluxio-field__suffix {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-width: 2rem;
+  padding-inline: 0.4rem;
+  border: 1px solid var(--fluxio-control-border);
+  border-inline-start: 0;
+  border-start-end-radius: var(--fluxio-radius-sm);
+  border-end-end-radius: var(--fluxio-radius-sm);
+  background: color-mix(in srgb, var(--fluxio-control-bg) 70%, var(--fluxio-bg-elevated));
+  color: var(--fluxio-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1;
+  user-select: none;
+}
+
+.fluxio-text-inplace-editor {
+  position: fixed;
+  z-index: 30;
+  margin: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: transparent;
+  overflow: hidden;
+  resize: none;
+  white-space: pre;
+  box-sizing: border-box;
+  -webkit-text-fill-color: transparent;
+}
+
+.fluxio-text-content {
+  width: 100%;
+  min-width: 0;
+  resize: vertical;
+  min-height: 2.5rem;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--fluxio-control-border, var(--fluxio-border));
+  border-radius: var(--fluxio-radius-sm, 0.35rem);
+  background: var(--fluxio-control-bg, transparent);
+  color: var(--fluxio-text, inherit);
+  font: inherit;
+  line-height: 1.35;
+}
+
+.fluxio-field-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--fluxio-space-2);
+  width: 100%;
+}
+
+.fluxio-segmented {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0;
+  padding: 0.15rem;
+  border: 1px solid var(--fluxio-control-border);
+  border-radius: var(--fluxio-radius-sm);
+  background: color-mix(in srgb, var(--fluxio-control-bg) 70%, transparent);
+}
+
+.fluxio-segmented .fluxio-btn {
+  min-height: calc(var(--fluxio-control-h) - 0.3rem);
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  border-radius: calc(var(--fluxio-radius-sm) - 1px);
+}
+
+.fluxio-segmented .fluxio-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--fluxio-accent) 10%, transparent);
+}
+
+.fluxio-segmented .fluxio-btn--active {
+  background: color-mix(in srgb, var(--fluxio-accent) 22%, var(--fluxio-control-bg));
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.fluxio-segmented--presets {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: 36rem;
+}
+
+.fluxio-segmented--presets .fluxio-btn {
+  flex: 1 1 auto;
+  min-width: 3.25rem;
+  padding-inline: 0.55rem;
+}
+
+.fluxio-btn--icon {
+  min-width: 2.25rem;
+  padding-inline: 0.55rem;
+  text-align: center;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.fluxio-icon-button-group {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--fluxio-space-2);
+}
+
+.fluxio-shape-kind-btn {
+  min-width: 2.5rem;
+  padding-inline: 0.45rem;
+}
+.fluxio-shape-kind-btn .fluxio-btn__icon {
+  width: 1.3rem;
+  height: 1.3rem;
+}
+
+.fluxio-color-overlay-modes .fluxio-color-overlay-mode-btn,
+.fluxio-focus-modes .fluxio-focus-mode-btn,
+.fluxio-frame-styles .fluxio-frame-style-btn,
+.fluxio-crop-mask-shapes .fluxio-crop-mask-shape-btn,
+.fluxio-transform-actions .fluxio-transform-action-btn,
+.fluxio-crop-aspects .fluxio-crop-aspect-btn,
+.fluxio-rulers-presets .fluxio-rulers-preset-btn,
+.fluxio-resize-presets .fluxio-resize-preset-btn {
+  flex: 1 1 auto;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  min-width: 3.5rem;
+  min-height: 2.85rem;
+  padding: 0.35rem 0.45rem;
+}
+
+.fluxio-resize-presets .fluxio-resize-preset-btn {
+  min-width: 4.25rem;
+  min-height: 2.35rem;
+}
+
+.fluxio-rulers-presets .fluxio-rulers-preset-btn {
+  min-width: 2.75rem;
+  min-height: 2.35rem;
+}
+
+.fluxio-color-overlay-mode-btn .fluxio-btn__icon,
+.fluxio-focus-mode-btn .fluxio-btn__icon,
+.fluxio-frame-style-btn .fluxio-btn__icon,
+.fluxio-crop-mask-shape-btn .fluxio-btn__icon,
+.fluxio-transform-action-btn .fluxio-btn__icon,
+.fluxio-crop-aspect-btn .fluxio-btn__icon {
+  width: 1.2rem;
+  height: 1.2rem;
+  flex: 0 0 auto;
+}
+
+.fluxio-color-overlay-mode-btn__label,
+.fluxio-focus-mode-btn__label,
+.fluxio-frame-style-btn__label,
+.fluxio-crop-mask-shape-btn__label,
+.fluxio-transform-action-btn__label,
+.fluxio-crop-aspect-btn__label,
+.fluxio-rulers-preset-btn__label,
+.fluxio-resize-preset-btn__label {
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.fluxio-resize-preset-btn__label {
+  font-variant-numeric: tabular-nums;
+}
+
+.fluxio-rulers-preset-btn__label {
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.fluxio-segmented--wrap {
+  flex-wrap: wrap;
+}
+
+.fluxio-line-end-styles {
+  gap: 0.25rem;
+}
+
+.fluxio-line-end-btn {
+  min-width: 2.15rem;
+  padding-inline: 0.35rem;
+}
+
+.fluxio-line-end-btn__icon {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.fluxio-line-end-btn__icon--start {
+  transform: scaleX(-1);
+}
+
+.fluxio-annotation-actions-menu {
+  position: fixed;
+  z-index: 40;
+  min-width: 11.5rem;
+  padding: 0.25rem;
+  border: 1px solid var(--fluxio-border);
+  border-radius: var(--fluxio-radius-sm, 0.35rem);
+  background: var(--fluxio-surface, #1c1c1e);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 35%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.fluxio-annotation-actions-menu button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--fluxio-fg, #f2f2f7);
+  text-align: start;
+  padding: 0.45rem 0.65rem;
+  border-radius: 0.25rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+.fluxio-annotation-actions-menu button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.fluxio-annotation-actions-menu button:not(:disabled):hover,
+.fluxio-annotation-actions-menu button:not(:disabled):focus-visible {
+  background: var(--fluxio-surface-2, rgb(255 255 255 / 8%));
+  outline: none;
+}
+
+.fluxio-annotation-actions-menu__sep {
+  height: 1px;
+  margin: 0.2rem 0.35rem;
+  background: var(--fluxio-border);
+}
+
+.fluxio-overlay-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(3.25rem, 1fr));
+  gap: var(--fluxio-space-2);
+  max-width: 100%;
+}
+
+.fluxio-overlay-gallery__item {
+  width: 100%;
+  aspect-ratio: 1;
+  height: auto;
+  min-height: 3.25rem;
+  padding: 0;
+  border: 1px solid var(--fluxio-border);
+  border-radius: var(--fluxio-radius-sm, 0.35rem);
+  overflow: hidden;
+  background: var(--fluxio-surface-2, transparent);
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 140ms ease;
+}
+
+.fluxio-overlay-gallery__item:hover {
+  border-color: var(--fluxio-border-strong);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--fluxio-accent) 28%, transparent);
+}
+
+.fluxio-overlay-gallery__item:active {
+  transform: scale(0.97);
+}
+
+.fluxio-overlay-gallery__item img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.fluxio-overlay-gallery--emoji {
+  grid-template-columns: repeat(auto-fill, minmax(2.75rem, 1fr));
+}
+
+.fluxio-overlay-gallery__item--emoji {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.fluxio-emoji-gallery__cell {
+  position: relative;
+}
+
+.fluxio-emoji-gallery__fav {
+  position: absolute;
+  top: 0.1rem;
+  inset-inline-end: 0.1rem;
+  z-index: 1;
+  width: 1.1rem;
+  height: 1.1rem;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--fluxio-surface, #fff) 85%, transparent);
+  color: var(--fluxio-muted);
+  font-size: 0.65rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 120ms ease, color 120ms ease;
+}
+
+.fluxio-emoji-gallery__cell:hover .fluxio-emoji-gallery__fav,
+.fluxio-emoji-gallery__fav:focus-visible,
+.fluxio-emoji-gallery__fav--on {
+  opacity: 1;
+}
+
+.fluxio-emoji-gallery__fav--on {
+  color: var(--fluxio-accent);
+}
+
+.fluxio-emoji-skin-tones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--fluxio-space-1);
+}
+
+.fluxio-emoji-skin-tones__swatch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border: 1px solid var(--fluxio-border);
+  border-radius: var(--fluxio-radius-sm, 0.35rem);
+  background: color-mix(in srgb, var(--fluxio-control-bg) 70%, transparent);
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.fluxio-emoji-skin-tones__swatch:hover {
+  border-color: color-mix(in srgb, var(--fluxio-accent) 45%, var(--fluxio-border));
+}
+
+.fluxio-emoji-skin-tones__swatch--active {
+  border-color: var(--fluxio-accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--fluxio-accent) 35%, transparent);
+}
+
+.fluxio-emoji-skin-tones__swatch:focus-visible {
+  outline: 2px solid var(--fluxio-focus);
+  outline-offset: 2px;
+}
+
+.fluxio-emoji-categories {
+  margin-block: var(--fluxio-space-2);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.fluxio-emoji-search {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--fluxio-space-2);
+  width: 100%;
+}
+
+.fluxio-emoji-search .fluxio-field__label {
+  margin: 0;
+  white-space: nowrap;
+}
+
+.fluxio-emoji-search .fluxio-field__control input {
+  border-start-end-radius: var(--fluxio-radius-sm);
+  border-end-end-radius: var(--fluxio-radius-sm);
+}
+
+.fluxio-emoji-search input[type='search'] {
+  appearance: none;
+  padding-inline: 0.55rem;
+}
+
+.fluxio-emoji-search input[type='search']::-webkit-search-decoration {
+  display: none;
+}
+
+.fluxio-emoji-search input[type='search']::-webkit-search-cancel-button {
+  appearance: none;
+  width: 0.85rem;
+  height: 0.85rem;
+  margin-inline-start: 0.25rem;
+  background:
+    linear-gradient(45deg, transparent 42%, currentColor 42%, currentColor 58%, transparent 58%),
+    linear-gradient(-45deg, transparent 42%, currentColor 42%, currentColor 58%, transparent 58%);
+  color: var(--fluxio-muted);
+  cursor: pointer;
+  opacity: 0.75;
+}
+
+.fluxio-emoji-search input[type='search']::-webkit-search-cancel-button:hover {
+  color: var(--fluxio-text);
+  opacity: 1;
+}
+
+.fluxio-emoji-categories__rail {
+  position: relative;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 0.15rem;
+  padding: 0.2rem;
+  border: 1px solid var(--fluxio-control-border);
+  border-radius: var(--fluxio-radius-sm);
+  background: color-mix(in srgb, var(--fluxio-control-bg) 70%, transparent);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+  mask-image: linear-gradient(
+    to inline-end,
+    transparent 0,
+    #000 0.55rem,
+    #000 calc(100% - 0.55rem),
+    transparent 100%
+  );
+}
+
+.fluxio-emoji-categories__tab {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 2.15rem;
+  height: 2.15rem;
+  padding: 0;
+  border: 0;
+  border-radius: calc(var(--fluxio-radius-sm) - 1px);
+  background: transparent;
+  color: var(--fluxio-muted);
+  font: inherit;
+  cursor: pointer;
+  scroll-snap-align: start;
+  transition:
+    background 120ms ease,
+    color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.fluxio-emoji-categories__tab:hover {
+  color: var(--fluxio-text);
+  background: color-mix(in srgb, var(--fluxio-accent) 10%, transparent);
+}
+
+.fluxio-emoji-categories__tab:focus-visible {
+  outline: 2px solid var(--fluxio-focus);
+  outline-offset: 1px;
+  z-index: 1;
+}
+
+.fluxio-emoji-categories__tab--active {
+  color: var(--fluxio-text);
+  background: color-mix(in srgb, var(--fluxio-accent) 18%, var(--fluxio-control-bg));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fluxio-accent) 42%, transparent);
+}
+
+.fluxio-emoji-categories__glyph {
+  display: block;
+  font-size: 1.1rem;
+  line-height: 1;
+  filter: grayscale(0.2) opacity(0.88);
+  transition:
+    filter 120ms ease,
+    transform 120ms ease;
+}
+
+.fluxio-emoji-categories__tab:hover .fluxio-emoji-categories__glyph,
+.fluxio-emoji-categories__tab--active .fluxio-emoji-categories__glyph {
+  filter: none;
+  transform: scale(1.08);
+}
+
+.fluxio-emoji-categories__caption {
+  margin: 0;
+  padding-inline: 0.15rem;
+  color: var(--fluxio-muted);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.fluxio-annotation-list__layer-preview--emoji {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.fluxio-template-gallery {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fluxio-space-1);
+}
+
+.fluxio-template-gallery__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--fluxio-space-2);
+  width: 100%;
+  min-height: 2.5rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--fluxio-border);
+  border-radius: calc(var(--fluxio-radius) - 2px);
+  background: color-mix(in srgb, var(--fluxio-control-bg) 70%, transparent);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-align: start;
+}
+
+.fluxio-template-gallery__item--thumb {
+  justify-content: flex-start;
+  padding: 0.35rem 0.5rem;
+}
+
+.fluxio-template-gallery__item:hover {
+  border-color: color-mix(in srgb, var(--fluxio-accent) 45%, var(--fluxio-border));
+}
+
+.fluxio-template-gallery__item:focus-visible {
+  outline: 2px solid var(--fluxio-focus);
+  outline-offset: 2px;
+}
+
+.fluxio-template-gallery__item--active {
+  border-color: var(--fluxio-accent);
+  background: color-mix(in srgb, var(--fluxio-accent) 14%, var(--fluxio-control-bg));
+}
+
+.fluxio-template-gallery__thumb {
+  flex: 0 0 auto;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--fluxio-radius-sm, 0.35rem);
+  object-fit: cover;
+  background: var(--fluxio-surface-2, transparent);
+}
+
+.fluxio-template-gallery__text {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--fluxio-space-2);
+  min-width: 0;
+}
+
+.fluxio-template-gallery__label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fluxio-template-gallery__size {
+  flex: 0 0 auto;
+  color: var(--fluxio-muted);
+  font-size: 0.68rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.fluxio-overlay-gallery__item--active {
+  outline: 2px solid var(--fluxio-accent, #8ec8ff);
+  outline-offset: 1px;
+}
+
+.fluxio-btn--file {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  cursor: pointer;
+}
+
+.fluxio-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.fluxio-upload-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  position: relative;
+  width: 100%;
+  min-height: 5.5rem;
+  padding: 0.85rem 0.75rem;
+  border: 1px dashed color-mix(in srgb, var(--fluxio-control-border) 70%, var(--fluxio-accent) 30%);
+  border-radius: var(--fluxio-radius-sm);
+  background: color-mix(in srgb, var(--fluxio-control-bg) 82%, var(--fluxio-accent) 8%);
+  color: var(--fluxio-text);
+  text-align: center;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease,
+    color 160ms ease;
+}
+
+.fluxio-upload-dropzone:hover {
+  border-color: color-mix(in srgb, var(--fluxio-accent) 55%, var(--fluxio-control-border));
+  background: color-mix(in srgb, var(--fluxio-control-bg) 72%, var(--fluxio-accent) 14%);
+}
+
+.fluxio-upload-dropzone:focus-within,
+.fluxio-upload-dropzone--active {
+  border-color: var(--fluxio-accent);
+  border-style: solid;
+  background: color-mix(in srgb, var(--fluxio-control-bg) 65%, var(--fluxio-accent) 18%);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--fluxio-accent) 28%, transparent);
+}
+
+.fluxio-upload-dropzone__icon {
+  display: block;
+  width: 1.35rem;
+  height: 1.35rem;
+  color: var(--fluxio-accent);
+  opacity: 0.95;
+}
+
+.fluxio-upload-dropzone__title {
+  font-size: 0.8125rem;
+  font-weight: 650;
+  line-height: 1.2;
+}
+
+.fluxio-upload-dropzone__hint {
+  max-width: 16rem;
+  color: var(--fluxio-muted);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fluxio-upload-dropzone {
+    transition: none;
+  }
+}
+
+.fluxio-image-editor__controls-hint {
+  margin: 0;
+  color: var(--fluxio-muted);
+  font-size: 0.8rem;
+  line-height: 1.35;
+  max-width: 48rem;
+}
+
+.fluxio-btn--chip {
+  min-height: 2rem;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.fluxio-image-editor__controls-main--sliders {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--fluxio-space-3);
+  width: 100%;
+}
+
+.fluxio-image-editor__controls-main--sliders .fluxio-image-editor__controls-title {
+  width: 100%;
+}
+
+.fluxio-slider {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+  padding: 0.35rem 0.45rem 0.45rem;
+  border: 1px solid transparent;
+  border-radius: var(--fluxio-radius-sm);
+  background: color-mix(in srgb, var(--fluxio-control-bg) 55%, transparent);
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.fluxio-slider--dialog {
+  width: 100%;
+  padding: 0.45rem 0.55rem 0.55rem;
+  border-color: var(--fluxio-border);
+  background: color-mix(in srgb, var(--fluxio-control-bg) 88%, transparent);
+}
+
+.fluxio-slider--active {
+  border-color: color-mix(in srgb, var(--fluxio-accent) 35%, var(--fluxio-border));
+  background: color-mix(in srgb, var(--fluxio-accent) 8%, var(--fluxio-control-bg));
+}
+
+.fluxio-slider__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--fluxio-space-2);
+  min-height: 1.25rem;
+}
+
+.fluxio-slider__name {
+  color: var(--fluxio-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.fluxio-slider__value {
+  min-width: 2.5rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  border: 1px solid var(--fluxio-border);
+  background: color-mix(in srgb, var(--fluxio-bg-elevated) 80%, transparent);
+  color: var(--fluxio-text);
+  font-size: 0.72rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  line-height: 1.35;
+}
+
+.fluxio-slider--active .fluxio-slider__value {
+  border-color: color-mix(in srgb, var(--fluxio-accent) 40%, var(--fluxio-border));
+  color: var(--fluxio-accent-hover);
+}
+
+.fluxio-slider__control {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 2.75rem;
+  touch-action: manipulation;
+}
+
+.fluxio-slider__center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1px;
+  height: 0.7rem;
+  transform: translate(-50%, -50%);
+  background: color-mix(in srgb, var(--fluxio-muted) 55%, transparent);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.fluxio-range {
+  --fluxio-range-fill: 0%;
+  appearance: none;
+  width: 100%;
+  height: 2.75rem;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.fluxio-range:focus {
+  outline: none;
+}
+
+.fluxio-range:focus-visible {
+  outline: 2px solid var(--fluxio-focus);
+  outline-offset: 2px;
+  border-radius: var(--fluxio-radius-sm);
+}
+
+.fluxio-range::-webkit-slider-runnable-track {
+  height: var(--fluxio-range-h);
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--fluxio-border) 80%, transparent);
+  background: linear-gradient(
+    to right,
+    var(--fluxio-accent) 0%,
+    var(--fluxio-accent) var(--fluxio-range-fill),
+    var(--fluxio-range-track) var(--fluxio-range-fill),
+    var(--fluxio-range-track) 100%
+  );
+  box-shadow: inset 0 1px 1px rgb(0 0 0 / 18%);
+}
+
+.fluxio-range::-moz-range-track {
+  height: var(--fluxio-range-h);
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--fluxio-border) 80%, transparent);
+  background: var(--fluxio-range-track);
+  box-shadow: inset 0 1px 1px rgb(0 0 0 / 18%);
+}
+
+.fluxio-range::-moz-range-progress {
+  height: var(--fluxio-range-h);
+  border-radius: 999px;
+  background: var(--fluxio-accent);
+}
+
+.fluxio-range::-webkit-slider-thumb {
+  appearance: none;
+  width: var(--fluxio-range-thumb-size);
+  height: var(--fluxio-range-thumb-size);
+  margin-top: calc((var(--fluxio-range-h) - var(--fluxio-range-thumb-size)) / 2 - 1px);
+  border-radius: 50%;
+  border: 2px solid var(--fluxio-range-thumb-border);
+  background:
+    radial-gradient(circle at 35% 30%, #ffffff 0%, var(--fluxio-range-thumb) 55%, #d7e0ea 100%);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 28%),
+    0 0 0 1px color-mix(in srgb, var(--fluxio-accent) 18%, transparent);
+  transition:
+    transform 140ms ease,
+    box-shadow 140ms ease,
+    border-color 140ms ease;
+}
+
+.fluxio-range::-moz-range-thumb {
+  width: var(--fluxio-range-thumb-size);
+  height: var(--fluxio-range-thumb-size);
+  border-radius: 50%;
+  border: 2px solid var(--fluxio-range-thumb-border);
+  background:
+    radial-gradient(circle at 35% 30%, #ffffff 0%, var(--fluxio-range-thumb) 55%, #d7e0ea 100%);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 28%),
+    0 0 0 1px color-mix(in srgb, var(--fluxio-accent) 18%, transparent);
+  transition:
+    transform 140ms ease,
+    box-shadow 140ms ease,
+    border-color 140ms ease;
+}
+
+.fluxio-range:hover::-webkit-slider-thumb,
+.fluxio-range:active::-webkit-slider-thumb {
+  transform: scale(1.08);
+  border-color: var(--fluxio-accent);
+  box-shadow:
+    0 2px 6px rgb(0 0 0 / 30%),
+    0 0 0 3px color-mix(in srgb, var(--fluxio-accent) 22%, transparent);
+}
+
+.fluxio-range:hover::-moz-range-thumb,
+.fluxio-range:active::-moz-range-thumb {
+  transform: scale(1.08);
+  border-color: var(--fluxio-accent);
+  box-shadow:
+    0 2px 6px rgb(0 0 0 / 30%),
+    0 0 0 3px color-mix(in srgb, var(--fluxio-accent) 22%, transparent);
+}
+
+.fluxio-slider--bipolar .fluxio-range::-webkit-slider-runnable-track {
+  background: linear-gradient(
+    to right,
+    var(--fluxio-range-track) 0%,
+    var(--fluxio-range-track) min(var(--fluxio-range-fill), 50%),
+    var(--fluxio-accent) min(var(--fluxio-range-fill), 50%),
+    var(--fluxio-accent) max(var(--fluxio-range-fill), 50%),
+    var(--fluxio-range-track) max(var(--fluxio-range-fill), 50%),
+    var(--fluxio-range-track) 100%
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fluxio-slider,
+  .fluxio-range::-webkit-slider-thumb,
+  .fluxio-range::-moz-range-thumb,
+  .fluxio-btn,
+  .fluxio-image-editor__zoom-btn,
+  .fluxio-image-editor__zoom-percent,
+  .fluxio-overlay-gallery__item,
+  .fluxio-image-editor__viewport {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+.fluxio-image-editor__controls-actions {
+  grid-area: actions;
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--fluxio-space-2);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  align-self: start;
+  min-width: 0;
+  padding: 0.15rem;
+  border-radius: var(--fluxio-radius-sm);
+  background: color-mix(in srgb, var(--fluxio-bg-elevated) 88%, transparent);
+}
+
+.fluxio-image-editor__controls-group--inspector > .fluxio-image-editor__controls-actions,
+.fluxio-image-editor__controls-group--adjustments > .fluxio-image-editor__controls-actions,
+.fluxio-image-editor__controls-group--filters > .fluxio-image-editor__controls-actions {
+  flex-direction: column;
+  align-items: stretch;
+  min-width: 6.75rem;
+}
+
+.fluxio-image-editor__controls-group--inspector > .fluxio-image-editor__controls-actions > .fluxio-btn,
+.fluxio-image-editor__controls-group--adjustments > .fluxio-image-editor__controls-actions > .fluxio-btn,
+.fluxio-image-editor__controls-group--filters > .fluxio-image-editor__controls-actions > .fluxio-btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.fluxio-image-editor__controls-title {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fluxio-muted);
+  margin-inline-end: var(--fluxio-space-1);
+  min-width: 4.5rem;
+  line-height: 1.2;
+}
+
+.fluxio-field {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--fluxio-space-2);
+  min-width: 0;
+}
+
+.fluxio-field--stack {
+  display: grid;
+  gap: var(--fluxio-space-1);
+  width: 100%;
+  min-width: 0;
+}
+
+.fluxio-image-editor__controls-main--toolbar .fluxio-field--stack {
+  width: auto;
+  min-width: 7rem;
+}
+
+.fluxio-field__label {
+  display: inline-flex;
+  justify-content: space-between;
+  gap: var(--fluxio-space-2);
+  color: var(--fluxio-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.fluxio-field__meta {
+  color: var(--fluxio-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.fluxio-field input[type='number'],
+.fluxio-field input[type='text'],
+.fluxio-field input[type='search'],
+.fluxio-field select,
+.fluxio-select {
+  border: 1px solid var(--fluxio-control-border);
+  background: var(--fluxio-control-bg);
+  color: inherit;
+  padding: 0 0.65rem;
+  min-height: var(--fluxio-control-h);
+  min-width: 0;
+  width: 100%;
+  border-radius: var(--fluxio-radius-sm);
+  font: inherit;
+}
+
+.fluxio-field select,
+.fluxio-select {
+  appearance: none;
+  padding-inline-end: 1.75rem;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--fluxio-muted) 50%),
+    linear-gradient(135deg, var(--fluxio-muted) 50%, transparent 50%);
+  background-position:
+    calc(100% - 0.85rem) calc(50% - 0.1rem),
+    calc(100% - 0.55rem) calc(50% - 0.1rem);
+  background-size: 0.3rem 0.3rem, 0.3rem 0.3rem;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+.fluxio-image-editor[dir='rtl'] .fluxio-field select,
+.fluxio-image-editor[dir='rtl'] .fluxio-select {
+  background-position:
+    0.55rem calc(50% - 0.1rem),
+    0.85rem calc(50% - 0.1rem);
+  padding-inline-end: 0.65rem;
+  padding-inline-start: 1.75rem;
+}
+
+.fluxio-field input[type='number']:focus-visible,
+.fluxio-field input[type='text']:focus-visible,
+.fluxio-field input[type='search']:focus-visible,
+.fluxio-field select:focus-visible,
+.fluxio-select:focus-visible,
+.fluxio-text-content:focus-visible {
+  outline: 2px solid var(--fluxio-focus);
+  outline-offset: 1px;
+}
+
+.fluxio-field input[type='range'] {
+  width: 100%;
+  min-height: 1.75rem;
+  margin: 0;
+  accent-color: var(--fluxio-accent);
+  cursor: pointer;
+}
+
+.fluxio-image-editor__controls-main--toolbar .fluxio-field input[type='number'],
+.fluxio-image-editor__controls-main--toolbar .fluxio-field input[type='text'],
+.fluxio-image-editor__controls-main--toolbar .fluxio-field select {
+  width: auto;
+  min-width: 5.5rem;
+}
+
+.fluxio-image-editor__controls-main--toolbar .fluxio-field__control {
+  width: auto;
+}
+
+.fluxio-image-editor__controls-main--toolbar .fluxio-field__control input {
+  width: 4.5rem;
+  min-width: 4.5rem;
+}
+
+.fluxio-control-section fluxio-color-alpha-field,
+.fluxio-image-editor__controls-section fluxio-color-alpha-field,
+.fluxio-image-editor__controls-main--form > fluxio-color-alpha-field,
+.fluxio-image-editor__controls-main--sliders > fluxio-color-alpha-field {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.fluxio-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--fluxio-muted);
+  font-size: 0.875rem;
+  cursor: pointer;
+  min-height: var(--fluxio-control-h);
+}
+
+.fluxio-check input {
+  width: 1.05rem;
+  height: 1.05rem;
+  accent-color: var(--fluxio-accent);
+}
+
+.fluxio-image-editor__viewport {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  /* Own pinch/pan; block browser page zoom/scroll on the stage. */
+  touch-action: none;
+  background-color: var(--fluxio-canvas-b);
+  background-image:
+    linear-gradient(45deg, var(--fluxio-canvas-a) 25%, transparent 25%),
+    linear-gradient(-45deg, var(--fluxio-canvas-a) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--fluxio-canvas-a) 75%),
+    linear-gradient(-45deg, transparent 75%, var(--fluxio-canvas-a) 75%);
+  background-size: 20px 20px;
+  background-position:
+    0 0,
+    0 10px,
+    10px -10px,
+    -10px 0;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 3%),
+    inset 0 0 0 1px rgb(0 0 0 / 25%);
+}
+
+/* Phase 4.8.6: host canvasBackground replaces the default checkerboard. */
+.fluxio-image-editor__viewport--custom-stage {
+  background-image: none;
+  background-size: auto;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.fluxio-image-editor__viewport-busy {
+  grid-area: 1 / 1;
+  z-index: 2;
+  display: grid;
+  place-content: center;
+  place-items: center;
+  gap: 0.65rem;
+  margin: 0;
+  border: 0;
+  background: rgb(8 12 18 / 48%);
+  color: #f4f7fb;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Pintura-style recenter when the image was panned / zoomed off-center. */
+.fluxio-image-editor__viewport-recenter {
+  position: absolute;
+  z-index: 5;
+  top: var(--fluxio-space-3, 0.75rem);
+  inset-inline-end: var(--fluxio-space-3, 0.75rem);
+  display: inline-grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--fluxio-control-border, #3a4452);
+  border-radius: var(--fluxio-radius-sm, 0.375rem);
+  background: color-mix(in srgb, var(--fluxio-bg-elevated, #171b22) 92%, transparent);
+  color: var(--fluxio-text, #eef2f7);
+  box-shadow: var(--fluxio-shadow, 0 10px 28px rgb(0 0 0 / 35%));
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+}
+
+.fluxio-image-editor__viewport-recenter:hover {
+  border-color: var(--fluxio-border-strong, #3d4654);
+  background: var(--fluxio-control-bg, #1c222c);
+}
+
+.fluxio-image-editor__viewport-recenter:focus-visible {
+  outline: 2px solid var(--fluxio-focus, #3aa0ff);
+  outline-offset: 2px;
+}
+
+.fluxio-image-editor__viewport-recenter-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  display: block;
+}
+
+.fluxio-image-editor__viewport-busy-label {
+  text-shadow: 0 1px 2px rgb(0 0 0 / 45%);
+}
+
+.fluxio-spinner {
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 2px solid rgb(255 255 255 / 28%);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: fluxio-spin 0.7s linear infinite;
+}
+
+@keyframes fluxio-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fluxio-spinner {
+    animation: none;
+    border-top-color: rgb(255 255 255 / 28%);
+    border-right-color: #fff;
+  }
+}
+
+.fluxio-image-editor__dialog-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgb(6 10 16 / 58%);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 8;
+  padding: var(--fluxio-space-4);
+  overflow: auto;
+  box-sizing: border-box;
+}
+
+.fluxio-image-editor__dialog {
+  width: min(380px, 100%);
+  max-height: calc(100% - 2 * var(--fluxio-space-4));
+  min-height: 0;
+  margin: auto;
+  background: var(--fluxio-bg-elevated);
+  border: 1px solid var(--fluxio-border);
+  border-radius: var(--fluxio-radius);
+  padding: var(--fluxio-space-4);
+  display: grid;
+  gap: var(--fluxio-space-3);
+  box-shadow: var(--fluxio-shadow);
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.fluxio-image-editor__dialog h2 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.fluxio-image-editor__dialog-hint {
+  margin: 0;
+  color: var(--fluxio-muted);
+  font-size: 0.875rem;
+}
+
+.fluxio-image-editor__dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--fluxio-space-2);
+  margin-top: var(--fluxio-space-1);
+}
+
+.fluxio-image-editor__dialog--batch {
+  width: min(440px, 100%);
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.fluxio-batch-export__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--fluxio-space-2);
+}
+
+.fluxio-batch-export__presets {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+  flex: 0 0 auto;
+}
+
+.fluxio-batch-export__presets legend {
+  padding: 0;
+  margin-bottom: var(--fluxio-space-2);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--fluxio-muted);
+}
+
+.fluxio-batch-export__list {
+  display: grid;
+  gap: var(--fluxio-space-1);
+  max-height: min(14rem, 28vh);
+  overflow: auto;
+  padding: 0.15rem;
+  overscroll-behavior: contain;
+}
+
+.fluxio-batch-export__item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--fluxio-space-2);
+  padding: 0.45rem 0.55rem;
+  border: 1px solid var(--fluxio-border);
+  border-radius: calc(var(--fluxio-radius) - 2px);
+  background: color-mix(in srgb, var(--fluxio-control-bg) 70%, transparent);
+  cursor: pointer;
+}
+
+.fluxio-batch-export__item input {
+  margin-top: 0.2rem;
+}
+
+.fluxio-batch-export__item-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.fluxio-batch-export__item-label {
+  font-size: 0.9rem;
+  font-weight: 550;
+}
+
+.fluxio-batch-export__item-meta {
+  font-size: 0.75rem;
+  color: var(--fluxio-muted);
+}
+
+.fluxio-batch-export__item--active {
+  border-color: var(--fluxio-accent);
+  background: color-mix(in srgb, var(--fluxio-accent) 14%, var(--fluxio-control-bg));
+}
+
+.fluxio-batch-export__item--done {
+  opacity: 0.65;
+  border-color: color-mix(in srgb, var(--fluxio-accent) 35%, var(--fluxio-border));
+}
+
+.fluxio-batch-export__progress {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--fluxio-space-2);
+  margin-top: var(--fluxio-space-1);
+}
+
+.fluxio-batch-export__progress .fluxio-spinner {
+  flex: 0 0 auto;
+  margin-top: 0.15rem;
+}
+
+.fluxio-batch-export__progress-copy {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.fluxio-batch-export__progress-copy .fluxio-image-editor__dialog-hint {
+  margin: 0 0 var(--fluxio-space-1);
+}
+
+.fluxio-batch-export__progress-bar {
+  height: 0.35rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--fluxio-border) 80%, transparent);
+  overflow: hidden;
+}
+
+.fluxio-batch-export__progress-bar::before {
+  content: '';
+  display: block;
+  width: var(--fluxio-range-fill, 0%);
+  height: 100%;
+  background: var(--fluxio-accent);
+  transition: width 160ms ease;
+}
+
+/* ── Responsive shell: medium (tablet) — canvas + icon rail; controls overlay ── */
+@container fluxio-editor (max-width: 1024px) {
+  .fluxio-image-editor__shell {
+    --fluxio-rail-w: 3.5rem;
+    --fluxio-subrail-w: 3.5rem;
+    --fluxio-side-panel-w: 14rem;
+  }
+
+  .fluxio-image-editor__shell,
+  .fluxio-image-editor__shell[data-utils-pos='left'][data-controls-pos='left'],
+  .fluxio-image-editor__shell[data-utils-pos='left'][data-controls-pos='right'] {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto auto 1fr;
+    grid-template-areas:
+      'toolbar toolbar'
+      'utilibar status'
+      'utilibar viewport';
+  }
+
+  .fluxio-image-editor__shell[data-utils-pos='right'][data-controls-pos='right'],
+  .fluxio-image-editor__shell[data-utils-pos='right'][data-controls-pos='left'] {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto 1fr;
+    grid-template-areas:
+      'toolbar toolbar'
+      'status utilibar'
+      'viewport utilibar';
+  }
+
+  .fluxio-image-editor__shell[data-toolbar-pos='bottom'],
+  .fluxio-image-editor__shell[data-toolbar-pos='bottom'][data-utils-pos='left'][data-controls-pos='left'],
+  .fluxio-image-editor__shell[data-toolbar-pos='bottom'][data-utils-pos='left'][data-controls-pos='right'] {
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas:
+      'utilibar status'
+      'utilibar viewport'
+      'toolbar toolbar';
+  }
+
+  .fluxio-image-editor__shell[data-toolbar-pos='bottom'][data-utils-pos='right'][data-controls-pos='right'],
+  .fluxio-image-editor__shell[data-toolbar-pos='bottom'][data-utils-pos='right'][data-controls-pos='left'] {
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas:
+      'status utilibar'
+      'viewport utilibar'
+      'toolbar toolbar';
+  }
+
+  .fluxio-image-editor__status-meta {
+    display: none;
+  }
+}
+
+/* ── Responsive shell: small (phone) — canvas-first; bottom tool rail ── */
+@container fluxio-editor (max-width: 768px) {
+  .fluxio-image-editor__shell {
+    --fluxio-control-h: 2.5rem;
+    --fluxio-rail-w: 100%;
+    --fluxio-subrail-w: 100%;
+  }
+
+  .fluxio-image-editor__shell,
+  .fluxio-image-editor__shell[data-utils-pos='left'][data-controls-pos='left'],
+  .fluxio-image-editor__shell[data-utils-pos='left'][data-controls-pos='right'],
+  .fluxio-image-editor__shell[data-utils-pos='right'][data-controls-pos='right'],
+  .fluxio-image-editor__shell[data-utils-pos='right'][data-controls-pos='left'],
+  .fluxio-image-editor__shell[data-toolbar-pos='bottom'],
+  .fluxio-image-editor__shell[data-toolbar-pos='bottom'][data-utils-pos='left'][data-controls-pos='left'],
+  .fluxio-image-editor__shell[data-toolbar-pos='bottom'][data-utils-pos='left'][data-controls-pos='right'],
+  .fluxio-image-editor__shell[data-toolbar-pos='bottom'][data-utils-pos='right'][data-controls-pos='right'],
+  .fluxio-image-editor__shell[data-toolbar-pos='bottom'][data-utils-pos='right'][data-controls-pos='left'] {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      'toolbar'
+      'status'
+      'viewport'
+      'utilibar';
+  }
+
+  .fluxio-image-editor__shell[data-toolbar-pos='bottom'] {
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      'status'
+      'viewport'
+      'utilibar'
+      'toolbar';
+  }
+
+  /* Single-row chrome: scroll sideways instead of wrapping into a tall stack. */
+  .fluxio-image-editor__toolbar {
+    flex-wrap: nowrap;
+    gap: var(--fluxio-space-1);
+    padding-block: 0.4rem;
+    padding-inline: var(--fluxio-space-2);
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .fluxio-image-editor__toolbar-group {
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
+    gap: var(--fluxio-space-1);
+    border-inline-end: 0;
+    padding-inline-end: var(--fluxio-space-2);
+    margin-inline-end: var(--fluxio-space-1);
+    box-shadow: inset -1px 0 0 var(--fluxio-border);
+  }
+
+  .fluxio-image-editor__toolbar-spacer {
+    display: none;
+  }
+
+  .fluxio-image-editor__toolbar-group--end {
+    width: auto;
+    margin-inline-start: 0;
+    padding-inline-end: 0;
+    margin-inline-end: 0;
+    box-shadow: none;
+    justify-content: flex-start;
+  }
+
+  .fluxio-image-editor__toolbar-group--end .fluxio-btn {
+    flex: 0 0 auto;
+  }
+
+  .fluxio-image-editor__toolbar .fluxio-btn {
+    flex: 0 0 auto;
+    min-width: var(--fluxio-control-h);
+    padding-inline: 0.55rem;
+    font-size: 0.8125rem;
+    white-space: nowrap;
+  }
+
+  /* Prefer icons when both icon + label are present (Compare, Layers, …). */
+  .fluxio-image-editor__toolbar .fluxio-btn:has(.fluxio-btn__icon) .fluxio-btn__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .fluxio-image-editor__toolbar .fluxio-btn:has(.fluxio-btn__icon) {
+    padding-inline: 0.45rem;
+  }
+
+  .fluxio-image-editor__zoom {
+    flex: 0 0 auto;
+  }
+
+  .fluxio-image-editor__export-trigger .fluxio-image-editor__export-caret {
+    margin-inline-start: 0.15rem;
+  }
+
+  .fluxio-image-editor__status {
+    min-height: 0;
+    padding-block: 0.25rem;
+  }
+
+  /* Phone: docking would leave no canvas — float the drawer over it instead. */
+  fluxio-side-panel,
+  .fluxio-side-panel-host {
+    position: absolute;
+    inset: 0;
+    max-width: none;
+    justify-content: flex-end;
+    align-items: flex-start;
+    pointer-events: none;
+  }
+
+  .fluxio-side-panel {
+    pointer-events: auto;
+    width: calc(100% - 1rem);
+    height: auto;
+    /* Leave room for the inspector bottom sheet (max 55vh) underneath. */
+    max-height: min(60vh, calc(100% - 1rem));
+    margin: 0.5rem;
+    border: 1px solid var(--fluxio-border);
+    border-radius: var(--fluxio-radius);
+    box-shadow: var(--fluxio-shadow);
+  }
+}
+
+/* Form / inspector stacking — viewport media as fallback for non-container hosts */
+@media (max-width: 720px) {
+  .fluxio-image-editor {
+    --fluxio-control-h: 2.5rem;
+  }
+
+  .fluxio-image-editor__controls-group {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'main'
+      'actions';
+    max-height: min(52vh, 30rem);
+  }
+
+  .fluxio-image-editor__controls-group--toolbar {
+    max-height: none;
+  }
+
+  .fluxio-image-editor__controls-actions {
+    position: static;
+    width: 100%;
+    justify-content: stretch;
+    padding-top: var(--fluxio-space-2);
+    border-top: 1px solid var(--fluxio-border);
+    background: transparent;
+  }
+
+  .fluxio-image-editor__controls-group--inspector > .fluxio-image-editor__controls-actions,
+  .fluxio-image-editor__controls-group--adjustments > .fluxio-image-editor__controls-actions,
+  .fluxio-image-editor__controls-group--filters > .fluxio-image-editor__controls-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+
+  .fluxio-image-editor__controls-group--inspector > .fluxio-image-editor__controls-actions > .fluxio-btn,
+  .fluxio-image-editor__controls-group--adjustments > .fluxio-image-editor__controls-actions > .fluxio-btn,
+  .fluxio-image-editor__controls-group--filters > .fluxio-image-editor__controls-actions > .fluxio-btn {
+    width: auto;
+    flex: 1 1 auto;
+  }
+
+  .fluxio-image-editor__controls-lead .fluxio-btn,
+  .fluxio-image-editor__controls-lead .fluxio-btn--file {
+    margin-inline-start: 0;
+  }
+
+  .fluxio-control-section__body--grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .fluxio-field-row,
+  .fluxio-geometry-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@container fluxio-controls (max-width: 520px) {
+  .fluxio-image-editor__controls-group {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'main'
+      'actions';
+  }
+
+  .fluxio-control-section__body--grid,
+  .fluxio-field-row,
+  .fluxio-geometry-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fluxio-btn,
+  .fluxio-image-editor__zoom-btn,
+  .fluxio-image-editor__zoom-percent {
+    transition: none;
+  }
+
+  .fluxio-btn:active:not(:disabled) {
+    transform: none;
+  }
+
+  .fluxio-image-editor__dialog-backdrop {
+    backdrop-filter: none;
+  }
+}

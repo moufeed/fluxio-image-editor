@@ -1,0 +1,130 @@
+<div
+  class="fluxio-image-editor__controls-group fluxio-image-editor__controls-group--adjustments"
+  role="group"
+  [attr.aria-label]="t('frame.tool')"
+>
+  <div class="fluxio-image-editor__controls-main fluxio-image-editor__controls-main--sliders">
+    <span class="fluxio-image-editor__controls-title">{{ t('frame.tool') }}</span>
+
+    <div
+      class="fluxio-segmented fluxio-segmented--presets fluxio-frame-styles"
+      role="radiogroup"
+      [attr.aria-label]="t('frame.style')"
+    >
+      @for (style of styleChoices; track style) {
+        <button
+          type="button"
+          class="fluxio-btn fluxio-btn--icon fluxio-frame-style-btn"
+          role="radio"
+          [class.fluxio-btn--active]="frameStyle() === style"
+          [attr.aria-checked]="frameStyle() === style"
+          [attr.aria-label]="t('frame.' + style)"
+          [attr.title]="t('frame.' + style)"
+          (click)="onStyleChange(style)"
+        >
+          <svg
+            class="fluxio-btn__icon"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <path
+              [attr.d]="styleIconPaths[style]"
+              fill="currentColor"
+              fill-rule="evenodd"
+            />
+          </svg>
+          <span class="fluxio-frame-style-btn__label">{{ t('frame.' + style) }}</span>
+        </button>
+      }
+    </div>
+
+    @if (frameGallery().length > 0) {
+      <section class="fluxio-control-section">
+        <header class="fluxio-control-section__header">
+          <span class="fluxio-control-section__title">{{ t('frame.gallery') }}</span>
+        </header>
+        <div class="fluxio-control-section__body">
+          <div class="fluxio-overlay-gallery" role="list">
+            @for (item of frameGallery(); track item.id) {
+              <button
+                type="button"
+                class="fluxio-overlay-gallery__item"
+                role="listitem"
+                [class.fluxio-overlay-gallery__item--active]="isFrameGalleryActive(item.src)"
+                [attr.aria-label]="item.label"
+                [attr.title]="item.label"
+                (click)="onFrameGallerySelect(item.src)"
+              >
+                <img [src]="item.src" [alt]="item.label" />
+              </button>
+            }
+          </div>
+        </div>
+      </section>
+    }
+
+    @if (showColors()) {
+      <fluxio-color-alpha-field
+        [label]="t('frame.color')"
+        [opacityLabel]="t('color.opacity')"
+        [showOpacity]="false"
+        [showRecent]="!showAccentColor()"
+        [value]="frameColor()"
+        [fallback]="colorFallbackWhite"
+        (valueChange)="onColorInput($event)"
+        (valueCommit)="onColorInput($event)"
+      />
+    }
+
+    @if (showAccentColor()) {
+      <fluxio-color-alpha-field
+        [label]="t('frame.color2')"
+        [opacityLabel]="t('color.opacity')"
+        [showOpacity]="false"
+        [value]="frameColor2()"
+        [fallback]="colorFallbackBlack"
+        (valueChange)="onColor2Input($event)"
+        (valueCommit)="onColor2Input($event)"
+      />
+    }
+
+    @for (slider of visibleFrameSliders(); track slider.key) {
+      <label
+        class="fluxio-slider"
+        [class.fluxio-slider--active]="frameUiValue(slider.key) !== 0"
+      >
+        <span class="fluxio-slider__header">
+          <span class="fluxio-slider__name">{{ t('frame.' + slider.key) }}</span>
+          <span class="fluxio-slider__value" aria-hidden="true">
+            {{ frameUiValue(slider.key) }}
+          </span>
+        </span>
+        <span class="fluxio-slider__control">
+          <input
+            type="range"
+            class="fluxio-range"
+            [min]="slider.min"
+            [max]="slider.max"
+            step="1"
+            [value]="frameUiValue(slider.key)"
+            [style.--fluxio-range-fill.%]="frameSliderFillPercent(slider)"
+            (input)="onFrameSliderInput(slider.key, +$any($event.target).value)"
+            [attr.aria-valuetext]="
+              t('frame.' + slider.key) + ' ' + frameUiValue(slider.key)
+            "
+            [attr.aria-label]="t('frame.' + slider.key)"
+          />
+        </span>
+      </label>
+    }
+  </div>
+  <fluxio-preview-tool-actions
+    [resetLabel]="t('frame.reset')"
+    [cancelLabel]="t('frame.cancel')"
+    [applyLabel]="t('frame.apply')"
+    (reset)="resetFrame()"
+    (cancel)="cancelFrame()"
+    (apply)="applyFrame()"
+  />
+</div>

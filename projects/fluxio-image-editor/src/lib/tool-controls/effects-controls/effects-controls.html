@@ -1,0 +1,46 @@
+<div
+  class="fluxio-image-editor__controls-group fluxio-image-editor__controls-group--adjustments"
+  role="group"
+  [attr.aria-label]="t('effects.tool')"
+>
+  <div class="fluxio-image-editor__controls-main fluxio-image-editor__controls-main--sliders">
+    <span class="fluxio-image-editor__controls-title">{{ t('effects.tool') }}</span>
+    @for (slider of effectSliders; track slider.key) {
+      <label
+        class="fluxio-slider"
+        [class.fluxio-slider--active]="effectUiValue(slider.key) !== 0"
+      >
+        <span class="fluxio-slider__header">
+          <span class="fluxio-slider__name">{{ t('effects.' + slider.key) }}</span>
+          <span class="fluxio-slider__value" aria-hidden="true">
+            {{ effectUiValue(slider.key) }}
+          </span>
+        </span>
+        <span class="fluxio-slider__control">
+          <input
+            type="range"
+            class="fluxio-range"
+            [min]="slider.min"
+            [max]="slider.max"
+            step="1"
+            [value]="effectUiValue(slider.key)"
+            [style.--fluxio-range-fill.%]="effectSliderFillPercent(slider)"
+            (input)="onEffectSliderInput(slider.key, +$any($event.target).value)"
+            [attr.aria-valuetext]="
+              t('effects.' + slider.key) + ' ' + effectUiValue(slider.key)
+            "
+            [attr.aria-label]="t('effects.' + slider.key)"
+          />
+        </span>
+      </label>
+    }
+  </div>
+  <fluxio-preview-tool-actions
+    [resetLabel]="t('effects.reset')"
+    [cancelLabel]="t('effects.cancel')"
+    [applyLabel]="t('effects.apply')"
+    (reset)="resetDraftEffects()"
+    (cancel)="cancelEffects()"
+    (apply)="applyEffects()"
+  />
+</div>

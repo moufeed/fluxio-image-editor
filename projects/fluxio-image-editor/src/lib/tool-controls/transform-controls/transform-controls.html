@@ -1,0 +1,169 @@
+@if (rotateMode()) {
+  <div
+    class="fluxio-image-editor__controls-group fluxio-image-editor__controls-group--adjustments"
+    role="group"
+    [attr.aria-label]="t('transform.rotate')"
+  >
+    <div class="fluxio-image-editor__controls-main fluxio-image-editor__controls-main--sliders">
+      <span class="fluxio-image-editor__controls-title">{{ t('transform.rotate') }}</span>
+      <div
+        class="fluxio-segmented fluxio-segmented--presets fluxio-transform-actions"
+        role="group"
+        [attr.aria-label]="t('transform.rotate')"
+      >
+        <button
+          type="button"
+          class="fluxio-btn fluxio-btn--icon fluxio-transform-action-btn"
+          [attr.aria-label]="t('transform.rotate')"
+          [attr.title]="t('transform.rotate')"
+          (click)="onRotate()"
+        >
+          @if (actionIconPath('transform.rotate-cw'); as rotateIcon) {
+            <svg class="fluxio-btn__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path [attr.d]="rotateIcon" fill="currentColor" />
+            </svg>
+          }
+          <span class="fluxio-transform-action-btn__label">{{ t('transform.rotate') }}</span>
+        </button>
+        <button
+          type="button"
+          class="fluxio-btn fluxio-btn--icon fluxio-transform-action-btn"
+          [attr.aria-label]="t('transform.flipH')"
+          [attr.title]="t('transform.flipH')"
+          (click)="onFlipH()"
+        >
+          @if (actionIconPath('transform.flip-h'); as flipHorizontalIcon) {
+            <svg class="fluxio-btn__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path [attr.d]="flipHorizontalIcon" fill="currentColor" />
+            </svg>
+          }
+          <span class="fluxio-transform-action-btn__label">{{ t('transform.flipH') }}</span>
+        </button>
+        <button
+          type="button"
+          class="fluxio-btn fluxio-btn--icon fluxio-transform-action-btn"
+          [attr.aria-label]="t('transform.flipV')"
+          [attr.title]="t('transform.flipV')"
+          (click)="onFlipV()"
+        >
+          @if (actionIconPath('transform.flip-v'); as flipVerticalIcon) {
+            <svg class="fluxio-btn__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path [attr.d]="flipVerticalIcon" fill="currentColor" />
+            </svg>
+          }
+          <span class="fluxio-transform-action-btn__label">{{ t('transform.flipV') }}</span>
+        </button>
+      </div>
+      @if (allowArbitraryAngle()) {
+        <label class="fluxio-field fluxio-field--stack fluxio-field--compact fluxio-image-editor__angle">
+          <span class="fluxio-field__label">{{ t('transform.rotate') }}</span>
+          <span class="fluxio-field__control">
+            <input
+              type="number"
+              min="0"
+              max="359"
+              [value]="arbitraryAngle()"
+              (input)="onAngleInput(+$any($event.target).value)"
+              (change)="flushAngle()"
+              (blur)="flushAngle()"
+              [attr.aria-label]="t('transform.rotate')"
+            />
+            <span class="fluxio-field__suffix" aria-hidden="true">°</span>
+          </span>
+        </label>
+      }
+      <label class="fluxio-check">
+        <input
+          type="checkbox"
+          [checked]="designImageLocked()"
+          (change)="onDesignImageLockChange($any($event.target).checked)"
+        />
+        <span>{{ t('transform.lockImage') }}</span>
+      </label>
+    </div>
+    <fluxio-immediate-tool-actions
+      [doneLabel]="t('transform.done')"
+      (done)="closeRotateMode()"
+    />
+  </div>
+} @else if (resizeMode()) {
+  <div
+    class="fluxio-image-editor__controls-group fluxio-image-editor__controls-group--toolbar"
+    role="group"
+    [attr.aria-label]="t('transform.resize')"
+  >
+    <div class="fluxio-image-editor__controls-main fluxio-image-editor__controls-main--toolbar">
+      <span class="fluxio-image-editor__controls-title">{{ t('transform.resize') }}</span>
+      @if (resizeSizePresets().length > 0) {
+        <div
+          class="fluxio-segmented fluxio-segmented--presets fluxio-resize-presets"
+          role="group"
+          [attr.aria-label]="t('transform.resize.presets')"
+        >
+          @for (preset of resizeSizePresets(); track preset.id) {
+            <button
+              type="button"
+              class="fluxio-btn fluxio-resize-preset-btn"
+              [class.fluxio-btn--active]="resizePresetId() === preset.id"
+              [attr.aria-pressed]="resizePresetId() === preset.id"
+              [attr.title]="resizePresetLabel(preset)"
+              (click)="onResizePreset(preset.id)"
+            >
+              <span class="fluxio-resize-preset-btn__label">{{ resizePresetLabel(preset) }}</span>
+            </button>
+          }
+        </div>
+      }
+      <div class="fluxio-control-row fluxio-control-row--compact">
+        <label class="fluxio-field fluxio-field--stack fluxio-field--compact">
+          <span class="fluxio-field__label">{{ t('annotation.width') }}</span>
+          <span class="fluxio-field__control">
+            <input
+              type="number"
+              min="1"
+              [value]="resizeWidth()"
+              (input)="onResizeWidthInput(+$any($event.target).value)"
+              (change)="flushResize()"
+              (blur)="flushResize()"
+            />
+            <span class="fluxio-field__suffix" aria-hidden="true">px</span>
+          </span>
+        </label>
+        <label class="fluxio-field fluxio-field--stack fluxio-field--compact">
+          <span class="fluxio-field__label">{{ t('annotation.height') }}</span>
+          <span class="fluxio-field__control">
+            <input
+              type="number"
+              min="1"
+              [value]="resizeHeight()"
+              (input)="onResizeHeightInput(+$any($event.target).value)"
+              (change)="flushResize()"
+              (blur)="flushResize()"
+            />
+            <span class="fluxio-field__suffix" aria-hidden="true">px</span>
+          </span>
+        </label>
+        <label class="fluxio-check">
+          <input
+            type="checkbox"
+            [checked]="resizeLock()"
+            (change)="onResizeLockChange($any($event.target).checked)"
+          />
+          <span>{{ t('transform.lockRatio') }}</span>
+        </label>
+        <label class="fluxio-check">
+          <input
+            type="checkbox"
+            [checked]="designImageLocked()"
+            (change)="onDesignImageLockChange($any($event.target).checked)"
+          />
+          <span>{{ t('transform.lockImage') }}</span>
+        </label>
+      </div>
+    </div>
+    <fluxio-immediate-tool-actions
+      [doneLabel]="t('transform.done')"
+      (done)="closeResizeMode()"
+    />
+  </div>
+}

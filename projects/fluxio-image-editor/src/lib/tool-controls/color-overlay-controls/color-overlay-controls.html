@@ -1,0 +1,105 @@
+<div
+  class="fluxio-image-editor__controls-group fluxio-image-editor__controls-group--adjustments"
+  role="group"
+  [attr.aria-label]="t('color-overlay.tool')"
+>
+  <div class="fluxio-image-editor__controls-main fluxio-image-editor__controls-main--sliders">
+    <span class="fluxio-image-editor__controls-title">{{ t('color-overlay.tool') }}</span>
+
+    <div
+      class="fluxio-segmented fluxio-segmented--presets fluxio-color-overlay-modes"
+      role="radiogroup"
+      [attr.aria-label]="t('color-overlay.mode')"
+    >
+      @for (mode of modeChoices; track mode) {
+        <button
+          type="button"
+          class="fluxio-btn fluxio-btn--icon fluxio-color-overlay-mode-btn"
+          role="radio"
+          [class.fluxio-btn--active]="overlayMode() === mode"
+          [attr.aria-checked]="overlayMode() === mode"
+          [attr.aria-label]="t('color-overlay.' + mode)"
+          [attr.title]="t('color-overlay.' + mode)"
+          (click)="onModeChange(mode)"
+        >
+          <svg
+            class="fluxio-btn__icon"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <path
+              [attr.d]="modeIconPaths[mode]"
+              fill="currentColor"
+              fill-rule="evenodd"
+            />
+          </svg>
+          <span class="fluxio-color-overlay-mode-btn__label">{{ t('color-overlay.' + mode) }}</span>
+        </button>
+      }
+    </div>
+
+    @if (showColors()) {
+      <fluxio-color-alpha-field
+        [label]="t('color-overlay.color')"
+        [opacityLabel]="t('color.opacity')"
+        [showOpacity]="false"
+        [showRecent]="!showAccentColor()"
+        [value]="overlayColor()"
+        [fallback]="colorFallbackBlack"
+        (valueChange)="onColorInput($event)"
+        (valueCommit)="onColorInput($event)"
+      />
+    }
+
+    @if (showAccentColor()) {
+      <fluxio-color-alpha-field
+        [label]="t('color-overlay.color2')"
+        [opacityLabel]="t('color.opacity')"
+        [showOpacity]="false"
+        [value]="overlayColor2()"
+        [fallback]="colorFallbackWhite"
+        (valueChange)="onColor2Input($event)"
+        (valueCommit)="onColor2Input($event)"
+      />
+    }
+
+    @for (slider of visibleOverlaySliders(); track slider.key) {
+      <label
+        class="fluxio-slider"
+        [class.fluxio-slider--active]="overlayUiValue(slider.key) !== 0"
+      >
+        <span class="fluxio-slider__header">
+          <span class="fluxio-slider__name">{{ t('color-overlay.' + slider.key) }}</span>
+          <span class="fluxio-slider__value" aria-hidden="true">
+            {{ overlayUiValue(slider.key) }}
+          </span>
+        </span>
+        <span class="fluxio-slider__control">
+          <input
+            type="range"
+            class="fluxio-range"
+            [min]="slider.min"
+            [max]="slider.max"
+            step="1"
+            [value]="overlayUiValue(slider.key)"
+            [style.--fluxio-range-fill.%]="overlaySliderFillPercent(slider)"
+            (input)="onOverlaySliderInput(slider.key, +$any($event.target).value)"
+            [attr.aria-valuetext]="
+              t('color-overlay.' + slider.key) + ' ' + overlayUiValue(slider.key)
+            "
+            [attr.aria-label]="t('color-overlay.' + slider.key)"
+          />
+        </span>
+      </label>
+    }
+  </div>
+  <fluxio-preview-tool-actions
+    [resetLabel]="t('color-overlay.reset')"
+    [cancelLabel]="t('color-overlay.cancel')"
+    [applyLabel]="t('color-overlay.apply')"
+    (reset)="resetColorOverlay()"
+    (cancel)="cancelColorOverlay()"
+    (apply)="applyColorOverlay()"
+  />
+</div>

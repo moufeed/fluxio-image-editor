@@ -1,0 +1,172 @@
+<div
+  class="fluxio-image-editor__controls-group fluxio-image-editor__controls-group--inspector"
+  role="group"
+  [attr.aria-label]="t('watermark.tool')"
+>
+  <div class="fluxio-image-editor__controls-main fluxio-image-editor__controls-main--form">
+    <span class="fluxio-image-editor__controls-title">{{ t('watermark.tool') }}</span>
+    <p class="fluxio-image-editor__controls-hint">{{ t('watermark.hint') }}</p>
+    <section class="fluxio-control-section">
+      <header class="fluxio-control-section__header">
+        <span class="fluxio-control-section__title">{{ t('controls.placement') }}</span>
+      </header>
+      <div class="fluxio-control-section__body">
+        <label class="fluxio-field fluxio-field--stack">
+          <span class="fluxio-field__label">{{ t('watermark.mode') }}</span>
+          <select
+            class="fluxio-select"
+            [value]="draftWatermark().mode"
+            (change)="setWatermarkMode($any($event.target).value)"
+          >
+            @for (mode of watermarkModes; track mode) {
+              <option [value]="mode" [selected]="mode === draftWatermark().mode">
+                {{ t('watermark.mode.' + mode) }}
+              </option>
+            }
+          </select>
+        </label>
+        <label class="fluxio-field fluxio-field--stack">
+          <span class="fluxio-field__label">{{ t('watermark.position') }}</span>
+          <select
+            class="fluxio-select"
+            [value]="draftWatermark().position"
+            (change)="setWatermarkPresetPosition($any($event.target).value)"
+          >
+            @for (pos of watermarkPositions; track pos) {
+              <option [value]="pos" [selected]="pos === draftWatermark().position">
+                {{ t('watermark.position.' + pos) }}
+              </option>
+            }
+          </select>
+        </label>
+      </div>
+    </section>
+    <section class="fluxio-control-section">
+      <header class="fluxio-control-section__header">
+        <span class="fluxio-control-section__title">{{ t('controls.appearance') }}</span>
+      </header>
+      <div class="fluxio-control-section__body">
+        <label
+          class="fluxio-slider"
+          [class.fluxio-slider--active]="draftWatermark().opacity !== 1"
+        >
+          <span class="fluxio-slider__header">
+            <span class="fluxio-slider__name">{{ t('watermark.opacity') }}</span>
+            <span class="fluxio-slider__value" aria-hidden="true">
+              {{ (draftWatermark().opacity * 100) | number: '1.0-0' }}%
+            </span>
+          </span>
+          <span class="fluxio-slider__control">
+            <input
+              type="range"
+              class="fluxio-range"
+              min="5"
+              max="100"
+              step="1"
+              [value]="(draftWatermark().opacity * 100) | number: '1.0-0'"
+              [style.--fluxio-range-fill.%]="(((draftWatermark().opacity * 100) - 5) / 95) * 100"
+              (input)="patchDraftWatermark({ opacity: +$any($event.target).value / 100 })"
+              (change)="commitSelectedWatermarkProps()"
+              [attr.aria-valuetext]="
+                t('watermark.opacity') + ' ' + ((draftWatermark().opacity * 100) | number: '1.0-0') + '%'
+              "
+              [attr.aria-label]="t('watermark.opacity')"
+            />
+          </span>
+        </label>
+        <div class="fluxio-control-row fluxio-control-row--compact">
+          <label class="fluxio-field fluxio-field--stack fluxio-field--compact">
+            <span class="fluxio-field__label">{{ t('watermark.scale') }}</span>
+            <span class="fluxio-field__control">
+              <input
+                type="number"
+                min="10"
+                step="5"
+                [value]="(draftWatermark().scale * 100) | number: '1.0-0'"
+                (change)="
+                  patchDraftWatermark({ scale: +$any($event.target).value / 100 });
+                  commitSelectedWatermarkProps()
+                "
+                [attr.aria-label]="t('watermark.scale')"
+              />
+              <span class="fluxio-field__suffix" aria-hidden="true">%</span>
+            </span>
+          </label>
+          <label class="fluxio-field fluxio-field--stack fluxio-field--compact">
+            <span class="fluxio-field__label">{{ t('watermark.angle') }}</span>
+            <span class="fluxio-field__control">
+              <input
+                type="number"
+                min="0"
+                max="359"
+                step="1"
+                [value]="draftWatermark().angle | number: '1.0-0'"
+                (change)="
+                  patchDraftWatermark({ angle: +$any($event.target).value });
+                  commitSelectedWatermarkProps()
+                "
+                [attr.aria-label]="t('watermark.angle')"
+              />
+              <span class="fluxio-field__suffix" aria-hidden="true">°</span>
+            </span>
+          </label>
+        </div>
+      </div>
+    </section>
+    <section class="fluxio-control-section">
+      <header class="fluxio-control-section__header">
+        <span class="fluxio-control-section__title">{{ t('controls.content') }}</span>
+      </header>
+      <div class="fluxio-control-section__body">
+        @if (draftWatermark().mode === 'text') {
+          <label class="fluxio-field fluxio-field--stack">
+            <span class="fluxio-field__label">{{ t('watermark.text') }}</span>
+            <input
+              type="text"
+              [value]="draftWatermark().text"
+              (input)="patchDraftWatermark({ text: $any($event.target).value })"
+              (change)="commitSelectedWatermarkProps()"
+            />
+          </label>
+          <fluxio-color-alpha-field
+            [label]="t('watermark.fill')"
+            [opacityLabel]="t('color.opacity')"
+            [value]="draftWatermark().fill"
+            [fallback]="colorFallbackWhite"
+            (valueChange)="patchDraftWatermark({ fill: $event })"
+            (valueCommit)="commitSelectedWatermarkProps()"
+          />
+        }
+        @if (draftWatermark().mode === 'image') {
+          @if (watermarkGallery().length === 0) {
+            <p class="fluxio-image-editor__controls-hint">{{ t('watermark.noGallery') }}</p>
+          } @else {
+            <div class="fluxio-overlay-gallery" role="list">
+              @for (item of watermarkGallery(); track item.id) {
+                <button
+                  type="button"
+                  class="fluxio-overlay-gallery__item"
+                  role="listitem"
+                  [class.fluxio-overlay-gallery__item--active]="draftWatermark().imageSrc === item.src"
+                  [attr.aria-label]="item.label"
+                  (click)="setWatermarkImageSrc(item.src)"
+                >
+                  <img [src]="item.src" [alt]="item.label" />
+                </button>
+              }
+            </div>
+          }
+          <label class="fluxio-btn fluxio-btn--file">
+            {{ t('watermark.upload') }}
+            <input type="file" accept="image/*" (change)="onWatermarkFileSelected($event)" hidden />
+          </label>
+        }
+      </div>
+    </section>
+  </div>
+  <fluxio-object-inspector-actions
+    [showDelete]="false"
+    [doneLabel]="t('watermark.done')"
+    (done)="doneWatermark()"
+  />
+</div>

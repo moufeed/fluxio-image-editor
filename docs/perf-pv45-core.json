@@ -1,0 +1,61 @@
+{
+  "generatedAt": "2026-09-21T18:13:27.303Z",
+  "environment": {
+    "runner": "vitest+jsdom (FakeRenderer; not Fabric compose)"
+  },
+  "notes": [
+    "Preview long edge capped at MAX_PREVIEW_LONG_EDGE (2048) for interactive compose.",
+    "Fabric full-compose / export timing is out of scope for this core microbench — re-run with Playwright when optimizing.",
+    "ms values are median wall time for the listed iterations (except annotations_set which is median of single executes)."
+  ],
+  "rows": [
+    {
+      "id": "preview_sizing_8k",
+      "label": "resolvePreviewOutputSize + computePreviewMaxLongEdge (8K)",
+      "ms": 0.3731999999981781,
+      "iterations": 2000,
+      "meta": {
+        "previewW": 2048,
+        "previewH": 1366,
+        "scale": 0.2575,
+        "edgeFit": 1000,
+        "edgeZoomed": 2048,
+        "maxLongEdge": 2048
+      }
+    },
+    {
+      "id": "normalize_500",
+      "label": "normalizeAnnotations (500 mixed)",
+      "ms": 16.72769999999946,
+      "iterations": 20
+    },
+    {
+      "id": "annotations_equal_500",
+      "label": "annotationsEqual (500 mixed, identical)",
+      "ms": 34.78930000000037,
+      "iterations": 10
+    },
+    {
+      "id": "hit_test_500",
+      "label": "hitTestInteractiveAnnotations (500)",
+      "ms": 0.11110000000189757,
+      "iterations": 50
+    },
+    {
+      "id": "group_drag_50",
+      "label": "applyGroupTransformableDrag (50 selection)",
+      "ms": 7.335999999999331,
+      "iterations": 30
+    },
+    {
+      "id": "annotations_set_200",
+      "label": "EditorSession.execute(ANNOTATIONS_SET) × 200 shapes",
+      "ms": 4.64520000000266,
+      "iterations": 1,
+      "meta": {
+        "runs": 5,
+        "renderCalls": 2
+      }
+    }
+  ]
+}

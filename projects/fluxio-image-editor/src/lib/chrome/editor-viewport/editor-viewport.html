@@ -1,0 +1,121 @@
+<div
+  #viewport
+  class="fluxio-image-editor__viewport"
+  [class.fluxio-image-editor__viewport--custom-stage]="presentation.hasCustomCanvasBackground()"
+  [attr.role]="presentation.canvasKeyboardActive() ? 'application' : 'img'"
+  [attr.tabindex]="presentation.canvasKeyboardActive() ? 0 : null"
+  [attr.aria-label]="
+    presentation.canvasKeyboardActive()
+      ? presentation.t('viewport.canvasInteractive')
+      : presentation.t('viewport.canvas')
+  "
+  [style]="presentation.viewportStageStyle()"
+  (contextmenu)="annotations.onViewportContextMenu($event)"
+  (pointerdown)="annotations.onViewportPointerDown($event)"
+  (pointermove)="annotations.onViewportPointerMove($event)"
+  (pointerup)="annotations.onViewportPointerUp()"
+  (pointercancel)="annotations.onViewportPointerUp()"
+></div>
+@if (presentation.markupSnap().showRulers && presentation.readyState()) {
+  <div
+    class="fluxio-markup-ruler fluxio-markup-ruler--top"
+    role="presentation"
+    [attr.title]="presentation.t('rulers.addVertical')"
+    (click)="onRulerPointer('x', $event)"
+  ></div>
+  <div
+    class="fluxio-markup-ruler fluxio-markup-ruler--left"
+    role="presentation"
+    [attr.title]="presentation.t('rulers.addHorizontal')"
+    (click)="onRulerPointer('y', $event)"
+  ></div>
+}
+@if (presentation.statusState() === 'loading') {
+  <div
+    class="fluxio-image-editor__viewport-busy"
+    role="status"
+    aria-live="polite"
+    [attr.aria-busy]="true"
+  >
+    <span class="fluxio-spinner" aria-hidden="true"></span>
+    <span class="fluxio-image-editor__viewport-busy-label">{{ presentation.t('status.loading') }}</span>
+  </div>
+}
+@if (presentation.showViewportRecenter()) {
+  <button
+    type="button"
+    class="fluxio-image-editor__viewport-recenter"
+    [attr.aria-label]="presentation.t('viewport.center')"
+    [attr.title]="presentation.t('viewport.center')"
+    (click)="toolbar.onCenterViewport()"
+  >
+    @if (recenterIconPath; as icon) {
+      <svg class="fluxio-image-editor__viewport-recenter-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path [attr.d]="icon" fill="currentColor" />
+      </svg>
+    } @else {
+      <span aria-hidden="true">⌖</span>
+    }
+  </button>
+}
+@if (presentation.textMode() && presentation.editingTextOverlay(); as ov) {
+  <textarea
+    #inplaceEditor
+    class="fluxio-text-inplace-editor"
+    wrap="off"
+    spellcheck="false"
+    [style.left.px]="ov.left"
+    [style.top.px]="ov.top"
+    [style.min-width.px]="ov.width"
+    [style.width.px]="ov.width"
+    [style.min-height.px]="ov.height"
+    [style.transform]="'rotate(' + ov.angle + 'deg)'"
+    [style.transform-origin]="ov.originXPx + 'px ' + ov.originYPx + 'px'"
+    [style.font-size.px]="ov.fontPx"
+    [style.line-height]="ov.lineHeight"
+    [style.padding.px]="ov.paddingPx"
+    [style.font-family]="ov.fontFamily"
+    [style.font-style]="ov.fontStyle"
+    [style.font-weight]="ov.fontWeight"
+    [style.text-decoration]="ov.textDecoration"
+    [style.text-align]="ov.textAlign"
+    [style.caret-color]="ov.color"
+    (input)="lifecycle.updateEditingText($any($event.target).value)"
+    (blur)="lifecycle.endTextEdit()"
+    (keydown.escape)="$event.preventDefault(); $event.stopPropagation(); lifecycle.endTextEdit()"
+  ></textarea>
+}
+@if (presentation.pathVertexToolbarVisible() && presentation.pathVertexToolbarPosition(); as pos) {
+  <div class="fluxio-canvas-selection-toolbar-host" [style.left.px]="pos.x" [style.top.px]="pos.y">
+    <fluxio-canvas-selection-toolbar
+      [ariaLabel]="presentation.t('annotation.delete')"
+      [deleteLabel]="presentation.t('annotation.delete')"
+      [showEdit]="false"
+      [showDuplicate]="false"
+      [showReorder]="false"
+      [showDelete]="true"
+      (deleteSelected)="lifecycle.onPathVertexToolbarDelete()"
+    />
+  </div>
+} @else if (presentation.canvasSelectionToolbarVisible() && presentation.canvasSelectionToolbarPosition(); as pos) {
+  <div class="fluxio-canvas-selection-toolbar-host" [style.left.px]="pos.x" [style.top.px]="pos.y">
+    <fluxio-canvas-selection-toolbar
+      [ariaLabel]="presentation.t('annotation.canvasToolbar')"
+      [editLabel]="presentation.t('annotation.edit')"
+      [duplicateLabel]="presentation.t('annotation.duplicate')"
+      [deleteLabel]="presentation.canvasSelectionToolbarDeleteLabel()"
+      [bringForwardLabel]="presentation.t('annotation.bringForward')"
+      [sendBackwardLabel]="presentation.t('annotation.sendBackward')"
+      [showEdit]="presentation.canvasSelectionToolbarShowEdit()"
+      [showDuplicate]="presentation.canvasSelectionToolbarShowDuplicate()"
+      [showReorder]="presentation.canvasSelectionToolbarShowReorder()"
+      [canBringForward]="annotations.canReorder('forward')"
+      [canSendBackward]="annotations.canReorder('backward')"
+      (edit)="lifecycle.onCanvasSelectionToolbarEdit()"
+      (duplicate)="lifecycle.onCanvasSelectionToolbarDuplicate()"
+      (bringForward)="lifecycle.onCanvasSelectionToolbarBringForward()"
+      (sendBackward)="lifecycle.onCanvasSelectionToolbarSendBackward()"
+      (deleteSelected)="lifecycle.onCanvasSelectionToolbarDelete()"
+    />
+  </div>
+}

@@ -1,0 +1,335 @@
+<div
+  class="fluxio-image-editor__controls-group fluxio-image-editor__controls-group--inspector"
+  role="group"
+  [attr.aria-label]="t('emoji.tool')"
+>
+  <div class="fluxio-image-editor__controls-main fluxio-image-editor__controls-main--form">
+    <div class="fluxio-image-editor__controls-lead">
+      <span class="fluxio-image-editor__controls-title">{{ t('emoji.tool') }}</span>
+    </div>
+    @if (draftTexts().length === 0) {
+      <p class="fluxio-image-editor__controls-hint">{{ t('emoji.empty') }}</p>
+    } @else {
+      <section class="fluxio-control-section fluxio-control-section--quiet fluxio-control-section--layers">
+        <header class="fluxio-control-section__header">
+          <span class="fluxio-control-section__title">{{ t('annotation.objects') }}</span>
+          <span class="fluxio-control-section__value">{{ draftTexts().length }}</span>
+        </header>
+        <div
+          class="fluxio-annotation-list"
+          role="listbox"
+          [attr.aria-label]="t('emoji.tool')"
+        >
+          @for (item of draftTexts(); track item.id) {
+            <div
+              class="fluxio-annotation-list__layer"
+              role="option"
+              [attr.aria-selected]="selectedTextIds().includes(item.id)"
+              [class.fluxio-annotation-list__layer--active]="selectedTextIds().includes(item.id)"
+              (click)="selectDraftText(item.id, $event)"
+              (keydown.enter)="selectDraftText(item.id, $event)"
+              tabindex="0"
+            >
+              <span class="fluxio-annotation-list__layer-preview fluxio-annotation-list__layer-preview--emoji">
+                {{ item.text }}
+              </span>
+              <span class="fluxio-annotation-list__layer-name">{{ item.text }}</span>
+              <span class="fluxio-annotation-list__layer-actions">
+                <span
+                  class="fluxio-annotation-list__layer-action fluxio-annotation-list__layer-action--delete"
+                  (click)="deleteDraftText(item.id); $event.stopPropagation()"
+                  aria-hidden="true"
+                  [attr.title]="t('annotation.delete')"
+                >&times;</span>
+              </span>
+            </div>
+          }
+        </div>
+      </section>
+    }
+    <p class="fluxio-image-editor__controls-hint">{{ t('annotation.keyboardHint') }}</p>
+
+    <section class="fluxio-control-section">
+      <header class="fluxio-control-section__header">
+        <span class="fluxio-control-section__title">{{ t('emoji.skinTone') }}</span>
+      </header>
+      <div class="fluxio-control-section__body">
+        <div
+          class="fluxio-emoji-skin-tones"
+          role="radiogroup"
+          [attr.aria-label]="t('emoji.skinTone')"
+        >
+          @for (modifier of skinToneModifiers; track $index) {
+            <button
+              type="button"
+              class="fluxio-emoji-skin-tones__swatch"
+              role="radio"
+              [class.fluxio-emoji-skin-tones__swatch--active]="presentation.emojiSkinTone() === $index"
+              [attr.aria-checked]="presentation.emojiSkinTone() === $index"
+              [attr.aria-label]="t('emoji.skinTone') + ' ' + ($index + 1)"
+              (click)="setSkinTone($index)"
+            >
+              <span aria-hidden="true">{{ skinTonePreview($index) }}</span>
+            </button>
+          }
+        </div>
+      </div>
+    </section>
+
+    @if (presentation.favoriteEmojis().length > 0) {
+      <section class="fluxio-control-section">
+        <header class="fluxio-control-section__header">
+          <span class="fluxio-control-section__title">{{ t('emoji.favorites') }}</span>
+        </header>
+        <div class="fluxio-control-section__body">
+          <div class="fluxio-overlay-gallery fluxio-overlay-gallery--emoji" role="list">
+            @for (glyph of presentation.favoriteEmojis(); track glyph) {
+              <button
+                type="button"
+                class="fluxio-overlay-gallery__item fluxio-overlay-gallery__item--emoji"
+                role="listitem"
+                [attr.aria-label]="glyph"
+                (click)="addGlyph(glyph)"
+              >
+                <span aria-hidden="true">{{ glyph }}</span>
+              </button>
+            }
+          </div>
+        </div>
+      </section>
+    }
+
+    <section class="fluxio-control-section">
+      <header class="fluxio-control-section__header">
+        <span class="fluxio-control-section__title">{{ t('emoji.gallery') }}</span>
+      </header>
+      <div class="fluxio-control-section__body">
+        <label class="fluxio-field fluxio-field--compact fluxio-emoji-search">
+          <span class="fluxio-field__label">{{ t('emoji.search') }}</span>
+          <span class="fluxio-field__control">
+            <input
+              type="search"
+              [value]="searchQuery()"
+              [attr.placeholder]="t('emoji.searchPlaceholder')"
+              [attr.aria-label]="t('emoji.search')"
+              (input)="onSearchInput($event)"
+            />
+          </span>
+        </label>
+        @if (showCategoryTabs()) {
+          <div class="fluxio-emoji-categories" role="presentation">
+            <div
+              class="fluxio-emoji-categories__rail"
+              role="tablist"
+              [attr.aria-label]="t('emoji.gallery')"
+            >
+              <button
+                type="button"
+                class="fluxio-emoji-categories__tab"
+                role="tab"
+                [class.fluxio-emoji-categories__tab--active]="activeCategory() === 'recent'"
+                [attr.aria-selected]="activeCategory() === 'recent'"
+                [attr.aria-label]="t('emoji.recent')"
+                [attr.title]="t('emoji.recent')"
+                (click)="setCategory('recent')"
+              >
+                <span class="fluxio-emoji-categories__glyph" aria-hidden="true">{{
+                  categoryGlyph('recent')
+                }}</span>
+              </button>
+              <button
+                type="button"
+                class="fluxio-emoji-categories__tab"
+                role="tab"
+                [class.fluxio-emoji-categories__tab--active]="activeCategory() === ''"
+                [attr.aria-selected]="activeCategory() === ''"
+                [attr.aria-label]="t('emoji.category.all')"
+                [attr.title]="t('emoji.category.all')"
+                (click)="setCategory('')"
+              >
+                <span class="fluxio-emoji-categories__glyph" aria-hidden="true">{{
+                  categoryGlyph('')
+                }}</span>
+              </button>
+              @for (category of categoryTabs(); track category) {
+                <button
+                  type="button"
+                  class="fluxio-emoji-categories__tab"
+                  role="tab"
+                  [class.fluxio-emoji-categories__tab--active]="activeCategory() === category"
+                  [attr.aria-selected]="activeCategory() === category"
+                  [attr.aria-label]="categoryLabel(category)"
+                  [attr.title]="categoryLabel(category)"
+                  (click)="setCategory(category)"
+                >
+                  <span class="fluxio-emoji-categories__glyph" aria-hidden="true">{{
+                    categoryGlyph(category)
+                  }}</span>
+                </button>
+              }
+            </div>
+            <p class="fluxio-emoji-categories__caption" aria-live="polite">
+              {{ categoryCaption() }}
+            </p>
+          </div>
+        }
+        @if (presentation.emojiGallery().length === 0 && activeCategory() !== 'recent') {
+          <p class="fluxio-image-editor__controls-hint">{{ t('emoji.noGallery') }}</p>
+        } @else if (filteredGallery().length === 0) {
+          <p class="fluxio-image-editor__controls-hint">{{ t('emoji.noResults') }}</p>
+        } @else {
+          <div class="fluxio-overlay-gallery fluxio-overlay-gallery--emoji" role="list">
+            @for (item of filteredGallery(); track item.id) {
+              <div class="fluxio-emoji-gallery__cell">
+                <button
+                  type="button"
+                  class="fluxio-overlay-gallery__item fluxio-overlay-gallery__item--emoji"
+                  role="listitem"
+                  [attr.aria-label]="item.label"
+                  [attr.title]="item.label"
+                  (click)="addEmoji(item)"
+                >
+                  <span aria-hidden="true">{{ applyTonePreview(item) }}</span>
+                </button>
+                <button
+                  type="button"
+                  class="fluxio-emoji-gallery__fav"
+                  [class.fluxio-emoji-gallery__fav--on]="
+                    presentation.isFavoriteEmoji(applyTonePreview(item))
+                  "
+                  [attr.aria-label]="
+                    presentation.isFavoriteEmoji(applyTonePreview(item))
+                      ? t('emoji.favoriteRemove')
+                      : t('emoji.favoriteAdd')
+                  "
+                  [attr.title]="
+                    presentation.isFavoriteEmoji(applyTonePreview(item))
+                      ? t('emoji.favoriteRemove')
+                      : t('emoji.favoriteAdd')
+                  "
+                  (click)="toggleFavorite(applyTonePreview(item), $event)"
+                >
+                  ★
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </section>
+    @if (selectedText(); as text) {
+      <section class="fluxio-control-section">
+        <header class="fluxio-control-section__header">
+          <span class="fluxio-control-section__title">{{ t('controls.appearance') }}</span>
+        </header>
+        <div class="fluxio-control-section__body">
+          <label
+            class="fluxio-slider"
+            [class.fluxio-slider--active]="true"
+          >
+            <span class="fluxio-slider__header">
+              <span class="fluxio-slider__name">{{ t('emoji.fontSize') }}</span>
+              <span class="fluxio-slider__value" aria-hidden="true">
+                {{ text.fontSize | number: '1.0-0' }}
+              </span>
+            </span>
+            <span class="fluxio-slider__control">
+              <input
+                type="range"
+                class="fluxio-range"
+                min="16"
+                max="256"
+                step="1"
+                [value]="text.fontSize"
+                [style.--fluxio-range-fill.%]="((text.fontSize - 16) / 240) * 100"
+                (input)="updateSelectedText({ fontSize: +$any($event.target).value })"
+                (change)="commitSelectedTextProps()"
+                [attr.aria-valuetext]="t('emoji.fontSize') + ' ' + text.fontSize"
+                [attr.aria-label]="t('emoji.fontSize')"
+              />
+            </span>
+          </label>
+        </div>
+      </section>
+      @if (hasMultiSelection()) {
+        <p class="fluxio-image-editor__controls-hint" role="status">{{ multiSelectionLabel() }}</p>
+      } @else if (selectedGeometry(); as geo) {
+        <section class="fluxio-control-section">
+          <header class="fluxio-control-section__header">
+            <span class="fluxio-control-section__title">{{ t('annotation.geometry') }}</span>
+          </header>
+          <div
+            class="fluxio-geometry-grid"
+            role="group"
+            [attr.aria-label]="t('annotation.geometry')"
+          >
+            <label class="fluxio-field fluxio-field--compact">
+              <span class="fluxio-field__label">{{ t('annotation.x') }}</span>
+              <span class="fluxio-field__control">
+                <input
+                  type="number"
+                  [value]="geo.x | number: '1.0-0'"
+                  (change)="updateSelectedGeometry({ x: +$any($event.target).value }); commitSelectedGeometry()"
+                />
+                <span class="fluxio-field__suffix" aria-hidden="true">px</span>
+              </span>
+            </label>
+            <label class="fluxio-field fluxio-field--compact">
+              <span class="fluxio-field__label">{{ t('annotation.y') }}</span>
+              <span class="fluxio-field__control">
+                <input
+                  type="number"
+                  [value]="geo.y | number: '1.0-0'"
+                  (change)="updateSelectedGeometry({ y: +$any($event.target).value }); commitSelectedGeometry()"
+                />
+                <span class="fluxio-field__suffix" aria-hidden="true">px</span>
+              </span>
+            </label>
+            <label class="fluxio-field fluxio-field--compact">
+              <span class="fluxio-field__label">{{ t('annotation.width') }}</span>
+              <span class="fluxio-field__control">
+                <input
+                  type="number"
+                  min="8"
+                  [value]="geo.width | number: '1.0-0'"
+                  (change)="updateSelectedGeometry({ width: +$any($event.target).value }); commitSelectedGeometry()"
+                />
+                <span class="fluxio-field__suffix" aria-hidden="true">px</span>
+              </span>
+            </label>
+            <label class="fluxio-field fluxio-field--compact">
+              <span class="fluxio-field__label">{{ t('annotation.height') }}</span>
+              <span class="fluxio-field__control">
+                <input
+                  type="number"
+                  min="8"
+                  [value]="geo.height | number: '1.0-0'"
+                  (change)="updateSelectedGeometry({ height: +$any($event.target).value }); commitSelectedGeometry()"
+                />
+                <span class="fluxio-field__suffix" aria-hidden="true">px</span>
+              </span>
+            </label>
+          </div>
+        </section>
+      }
+      <fluxio-order-actions
+        [ariaLabel]="t('annotation.order')"
+        [bringToFrontLabel]="t('annotation.bringToFront')"
+        [bringForwardLabel]="t('annotation.bringForward')"
+        [sendBackwardLabel]="t('annotation.sendBackward')"
+        [sendToBackLabel]="t('annotation.sendToBack')"
+        [disabled]="!primarySelectedAnnotationId()"
+        [canFront]="canReorderSelectedAnnotation('front')"
+        [canForward]="canReorderSelectedAnnotation('forward')"
+        [canBackward]="canReorderSelectedAnnotation('backward')"
+        [canBack]="canReorderSelectedAnnotation('back')"
+        (reorder)="reorderSelectedAnnotation($event)"
+      />
+    }
+  </div>
+  <fluxio-object-inspector-actions
+    [showDelete]="false"
+    [doneLabel]="t('emoji.done')"
+    (done)="done()"
+  />
+</div>

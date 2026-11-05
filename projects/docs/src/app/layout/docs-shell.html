@@ -1,0 +1,65 @@
+<a class="sr-only" href="#docs-main">Skip to content</a>
+
+<header class="docs-topbar" role="banner">
+  <button
+    type="button"
+    class="docs-icon-btn docs-nav-toggle"
+    (click)="toggleNav()"
+    [attr.aria-expanded]="navOpen()"
+    aria-controls="docsSideNav"
+    aria-label="Toggle navigation"
+  >
+    <span aria-hidden="true">☰</span>
+  </button>
+
+  <a class="docs-brand" routerLink="/docs/getting-started" (click)="closeNav()">
+    <span class="docs-brand__mark" aria-hidden="true">N</span>
+    <span>fluxio-image-editor</span>
+  </a>
+
+  <div class="docs-topbar__search">
+    <label class="sr-only" for="docsSearch">Search documentation</label>
+    <input
+      id="docsSearch"
+      class="docs-search"
+      type="search"
+      placeholder="Search features &amp; plugins…"
+      [value]="search()"
+      (input)="onSearch($any($event.target).value)"
+    />
+  </div>
+
+  <div class="docs-topbar__actions">
+    <button type="button" class="docs-icon-btn" (click)="toggleTheme()" aria-label="Toggle color theme">
+      <span aria-hidden="true">{{ theme() === 'dark' ? '☀' : '☾' }}</span>
+    </button>
+  </div>
+</header>
+
+<div class="docs-shell" [class.docs-shell--nav-open]="navOpen()">
+  <nav class="docs-nav" id="docsSideNav" aria-label="Documentation">
+    @for (group of filteredNav(); track group.title) {
+      <div class="docs-nav__group">
+        <h2 class="docs-nav__title">{{ group.title }}</h2>
+        <ul class="docs-nav__list">
+          @for (item of group.items; track item.id) {
+            <li>
+              <a
+                class="docs-nav__link"
+                [routerLink]="['/docs', item.id]"
+                routerLinkActive="is-active"
+                (click)="closeNav()"
+              >
+                {{ item.label }}
+              </a>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+  </nav>
+
+  <main class="docs-main" id="docs-main" tabindex="-1">
+    <router-outlet />
+  </main>
+</div>

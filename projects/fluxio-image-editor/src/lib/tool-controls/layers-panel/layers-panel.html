@@ -1,0 +1,236 @@
+<div
+  class="fluxio-layers-panel__list fluxio-annotation-list"
+  role="listbox"
+  [attr.aria-label]="t('layers.aria')"
+  [attr.aria-multiselectable]="true"
+>
+  @for (layer of layers(); track layer.id) {
+    <div
+      class="fluxio-annotation-list__layer"
+      role="option"
+      [class.fluxio-annotation-list__layer--active]="layer.selected"
+      [class.fluxio-annotation-list__layer--hidden]="!layer.visible"
+      [class.fluxio-annotation-list__layer--locked]="layer.locked"
+      [class.fluxio-annotation-list__layer--group]="layer.rowKind === 'group'"
+      [class.fluxio-annotation-list__layer--synthetic]="
+        layer.rowKind === 'base' ||
+        layer.rowKind === 'adjustments' ||
+        layer.rowKind === 'filters'
+      "
+      [style.padding-inline-start.rem]="0.35 + layer.depth * 0.75"
+      [attr.aria-selected]="layer.selected"
+      (click)="onRowClick(layer, $event)"
+      (dblclick)="startRename(layer, $event)"
+    >
+      @if (layer.rowKind === 'group') {
+        <button
+          type="button"
+          class="fluxio-annotation-list__layer-action fluxio-layers-panel__collapse"
+          (click)="toggleGroupCollapsed(layer.groupId!); $event.stopPropagation()"
+          [attr.aria-label]="layer.collapsed ? t('layers.expand') : t('layers.collapse')"
+        >
+          {{ layer.collapsed ? '▸' : '▾' }}
+        </button>
+      }
+
+      <span class="fluxio-annotation-list__layer-preview" aria-hidden="true">
+        @if (layer.preview === 'folder') {
+          <span class="fluxio-annotation-list__layer-preview--icon">▤</span>
+        } @else if (layer.preview === 'text') {
+          <span class="fluxio-annotation-list__layer-preview--icon">Aa</span>
+        } @else if (layer.preview === 'thumb' && layer.thumbSrc) {
+          <img
+            class="fluxio-annotation-list__layer-preview--thumb"
+            [src]="layer.thumbSrc"
+            alt=""
+          />
+        } @else if (layer.color) {
+          <span
+            class="fluxio-annotation-list__layer-preview--swatch"
+            [style.background]="layer.color"
+          ></span>
+        } @else {
+          <span class="fluxio-annotation-list__layer-preview--icon">
+            @switch (layer.rowKind) {
+              @case ('base') {
+                ◻
+              }
+              @case ('adjustments') {
+                ◎
+              }
+              @case ('filters') {
+                ◈
+              }
+              @default {
+                •
+              }
+            }
+          </span>
+        }
+      </span>
+
+      @if (renamingId() === layer.id) {
+        <input
+          class="fluxio-layers-panel__rename"
+          type="text"
+          [value]="renameDraft()"
+          (input)="onRenameInput($any($event.target).value)"
+          (keydown.enter)="commitRename(); $event.preventDefault()"
+          (keydown.escape)="cancelRename(); $event.preventDefault()"
+          (blur)="commitRename()"
+          (click)="$event.stopPropagation()"
+          [attr.aria-label]="t('layers.rename')"
+        />
+      } @else {
+        <span class="fluxio-annotation-list__layer-name">{{ layer.label }}</span>
+      }
+
+      <span class="fluxio-annotation-list__layer-actions">
+        <button
+          type="button"
+          class="fluxio-annotation-list__layer-action"
+          (click)="toggleVisibility(layer, $event)"
+          [attr.aria-label]="t('layers.visible')"
+          [attr.aria-pressed]="layer.visible"
+          [title]="t('layers.visible')"
+        >
+          {{ layer.visible ? '👁' : '◌' }}
+        </button>
+        @if (
+          layer.rowKind === 'annotation' ||
+          layer.rowKind === 'group' ||
+          layer.rowKind === 'base'
+        ) {
+          <button
+            type="button"
+            class="fluxio-annotation-list__layer-action"
+            (click)="toggleLock(layer, $event)"
+            [attr.aria-label]="t('layers.locked')"
+            [attr.aria-pressed]="layer.locked"
+            [title]="t('layers.locked')"
+          >
+            {{ layer.locked ? '🔒' : '🔓' }}
+          </button>
+        }
+        @if (layer.rowKind === 'adjustments' || layer.rowKind === 'filters') {
+          <button
+            type="button"
+            class="fluxio-annotation-list__layer-action"
+            (click)="openSynthetic(layer, $event)"
+            [attr.aria-label]="t('layers.openTool')"
+            [title]="t('layers.openTool')"
+          >
+            ✎
+          </button>
+          <button
+            type="button"
+            class="fluxio-annotation-list__layer-action"
+            (click)="resetSynthetic(layer, $event)"
+            [disabled]="!layer.visible"
+            [attr.aria-label]="t('layers.reset')"
+            [title]="t('layers.reset')"
+          >
+            ↺
+          </button>
+        }
+      </span>
+    </div>
+  } @empty {
+    <p class="fluxio-layers-panel__empty">{{ t('layers.empty') }}</p>
+  }
+</div>
+
+@if (annotationCount() > 0 || hasSelection()) {
+  <div class="fluxio-layers-panel__footer">
+    @if (hasSelection() && selectedOpacityPercent() != null) {
+      <label class="fluxio-slider fluxio-layers-panel__opacity">
+        <span class="fluxio-slider__header">
+          <span class="fluxio-slider__name">{{ t('layers.opacity') }}</span>
+          <span class="fluxio-slider__value" aria-hidden="true"
+            >{{ selectedOpacityPercent() }}%</span
+          >
+        </span>
+        <span class="fluxio-slider__control">
+          <input
+            type="range"
+            class="fluxio-range"
+            min="5"
+            max="100"
+            step="1"
+            [value]="selectedOpacityPercent()!"
+            [style.--fluxio-range-fill.%]="selectedOpacityPercent()!"
+            [disabled]="selectedLocked()"
+            (input)="onOpacityInput(+$any($event.target).value)"
+            (change)="onOpacityCommit()"
+            [attr.aria-label]="t('layers.opacity')"
+            [attr.aria-valuetext]="t('layers.opacity') + ' ' + selectedOpacityPercent() + '%'"
+          />
+        </span>
+      </label>
+
+      <label class="fluxio-layers-panel__blend">
+        <span class="fluxio-slider__name">{{ t('layers.blend') }}</span>
+        <select
+          class="fluxio-select"
+          [value]="selectedBlendMode() ?? 'normal'"
+          [disabled]="selectedLocked()"
+          (change)="onBlendChange($any($event.target).value)"
+          [attr.aria-label]="t('layers.blend')"
+        >
+          @for (mode of blendModes; track mode) {
+            <option [value]="mode">{{ blendLabel(mode) }}</option>
+          }
+        </select>
+      </label>
+    }
+
+    <fluxio-order-actions
+      [ariaLabel]="t('layers.arrange')"
+      [bringToFrontLabel]="t('layers.bringToFront')"
+      [bringForwardLabel]="t('layers.bringForward')"
+      [sendBackwardLabel]="t('layers.sendBackward')"
+      [sendToBackLabel]="t('layers.sendToBack')"
+      [disabled]="!hasSelection() || selectedLocked()"
+      [canFront]="canReorder('front')"
+      [canForward]="canReorder('forward')"
+      [canBackward]="canReorder('backward')"
+      [canBack]="canReorder('back')"
+      (reorder)="onReorder($event)"
+    />
+
+    <div class="fluxio-layers-panel__actions">
+      <button
+        type="button"
+        class="fluxio-btn fluxio-btn--quiet"
+        [disabled]="!canGroup()"
+        (click)="groupSelected()"
+      >
+        {{ t('layers.group') }}
+      </button>
+      <button
+        type="button"
+        class="fluxio-btn fluxio-btn--quiet"
+        [disabled]="!canUngroup()"
+        (click)="ungroupSelected()"
+      >
+        {{ t('layers.ungroup') }}
+      </button>
+      <button
+        type="button"
+        class="fluxio-btn fluxio-btn--quiet"
+        [disabled]="!hasSelection() || selectedLocked()"
+        (click)="duplicateSelected()"
+      >
+        {{ t('layers.duplicate') }}
+      </button>
+      <button
+        type="button"
+        class="fluxio-btn fluxio-btn--quiet"
+        [disabled]="!hasSelection() || selectedLocked()"
+        (click)="deleteSelected()"
+      >
+        {{ t('layers.delete') }}
+      </button>
+    </div>
+  </div>
+}

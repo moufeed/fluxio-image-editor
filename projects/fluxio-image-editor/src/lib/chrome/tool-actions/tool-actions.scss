@@ -1,0 +1,118 @@
+/* Footer action buttons — owned by tool-actions components (encapsulation). */
+
+:host {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.fluxio-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  min-width: 0;
+  min-height: 2rem;
+  margin: 0;
+  padding: 0 0.75rem;
+  border: 1px solid transparent;
+  border-radius: 0.375rem;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+  cursor: pointer;
+  box-shadow: none;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.fluxio-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.fluxio-btn:focus-visible {
+  outline: 2px solid var(--fluxio-focus, #3aa0ff);
+  outline-offset: 1px;
+}
+
+.fluxio-btn:active:not(:disabled) {
+  transform: none;
+}
+
+/* Cancel / Reset — quiet secondary */
+.fluxio-btn--cancel,
+.fluxio-btn--quiet {
+  flex: 0 1 auto;
+  background: transparent;
+  color: var(--fluxio-muted, #9aa6b5);
+}
+
+.fluxio-btn--cancel:hover:not(:disabled),
+.fluxio-btn--quiet:hover:not(:disabled) {
+  background: var(--fluxio-panel-input-bg, color-mix(in srgb, var(--fluxio-control-bg, #1c222c) 88%, black 12%));
+  color: var(--fluxio-text, #eef2f7);
+}
+
+/* Clear — destructive secondary */
+.fluxio-btn--clear {
+  flex: 0 1 auto;
+  background: transparent;
+  color: var(--fluxio-muted, #9aa6b5);
+}
+
+.fluxio-btn--clear:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--fluxio-danger, #ff8f8f) 14%, transparent);
+  color: var(--fluxio-danger, #ff8f8f);
+}
+
+/* Apply / Done — primary CTA */
+.fluxio-btn--done {
+  flex: 1 1 auto;
+  min-width: 4.75rem;
+  margin-inline-start: 0.15rem;
+  background: var(--fluxio-accent, #3aa0ff);
+  color: var(--fluxio-accent-contrast, #041018);
+  font-weight: 700;
+  box-shadow:
+    0 1px 0 color-mix(in srgb, white 18%, transparent) inset,
+    0 1px 2px color-mix(in srgb, black 28%, transparent);
+}
+
+.fluxio-btn--done:hover:not(:disabled) {
+  background: var(--fluxio-accent-hover, #62b4ff);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, white 22%, transparent) inset,
+    0 2px 6px color-mix(in srgb, var(--fluxio-accent, #3aa0ff) 35%, transparent);
+}
+
+.fluxio-btn--done:active:not(:disabled) {
+  box-shadow:
+    0 1px 0 color-mix(in srgb, black 12%, transparent) inset,
+    0 1px 2px color-mix(in srgb, black 22%, transparent);
+}
+
+.fluxio-btn--done:disabled {
+  box-shadow: none;
+}
+
+/* Solo Done fills the footer */
+:host:has(> .fluxio-btn--done:only-child) > .fluxio-btn--done {
+  width: 100%;
+  margin-inline-start: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fluxio-btn {
+    transition: none;
+  }
+}

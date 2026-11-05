@@ -1,0 +1,795 @@
+<main class="demo">
+  <header class="demo__header">
+    <div class="demo__header-copy">
+      <h1>{{ title }}</h1>
+      <p>
+        Full editor feature set — crop, transform, adjustments, effects, filters, focus, masks,
+        frames, templates, annotations, compare, layers, history, color picker — plus themes and
+        AR/EN RTL.
+      </p>
+      @if (strictCspMode) {
+        <p class="demo__csp-banner" role="status">
+          Strict CSP validation mode — demo host policy only (not a company-wide production CSP).
+          Check the console for CSP violations while exercising load → edit → export →
+          destroy/reopen.
+        </p>
+      }
+    </div>
+    <button
+      type="button"
+      class="demo__panel-toggle"
+      [attr.aria-expanded]="configPanelOpen()"
+      aria-controls="demo-config-panel"
+      (click)="toggleConfigPanel()"
+    >
+      {{ configPanelOpen() ? 'Hide config' : 'Show config' }}
+    </button>
+  </header>
+
+  <div class="demo__body" [class.demo__body--panel-closed]="!configPanelOpen()">
+    <aside
+      id="demo-config-panel"
+      class="demo__config-panel"
+      aria-label="Editor configuration"
+      [hidden]="!configPanelOpen()"
+    >
+      <div class="demo__config-panel-head">
+        <div>
+          <h2>Configuration</h2>
+          <p class="demo__config-summary">{{ activePluginCount() }}</p>
+        </div>
+        <div class="demo__config-actions">
+          <button type="button" class="demo__btn demo__btn--ghost" (click)="applyConfigSnapshot()">
+            Apply
+          </button>
+          <button type="button" class="demo__btn demo__btn--ghost" (click)="resetConfigDefaults()">
+            Reset
+          </button>
+        </div>
+      </div>
+
+      <div class="demo__config-scroll">
+        <details class="demo__section" open>
+          <summary>Source &amp; session</summary>
+          <div class="demo__section-body">
+            <label class="demo__field">
+              <span class="demo__label">Load image</span>
+              <input type="file" accept="image/*" (change)="onFileSelected($event)" />
+            </label>
+            <div class="demo__btn-row">
+              <button type="button" class="demo__btn" (click)="loadSameOriginFixture()">
+                Same-origin fixture
+              </button>
+              <button type="button" class="demo__btn" (click)="loadBlobSample()">Load Blob</button>
+              <button type="button" class="demo__btn" (click)="loadBrokenRemote()">
+                Broken remote URL
+              </button>
+            </div>
+            <div class="demo__field">
+              <span class="demo__label">Open / edit format samples</span>
+              <div class="demo__btn-row">
+                @for (sample of formatSamples; track sample.id) {
+                  <button
+                    type="button"
+                    class="demo__btn"
+                    [title]="sample.note"
+                    (click)="loadFormatSample(sample.src, sample.label)"
+                  >
+                    {{ sample.label }}
+                  </button>
+                }
+              </div>
+            </div>
+            <div class="demo__btn-row">
+              <button
+                type="button"
+                class="demo__btn"
+                (click)="downloadDesignState()"
+                [disabled]="!editorVisible()"
+              >
+                Save design JSON
+              </button>
+              <label class="demo__field demo__field--inline">
+                <span class="demo__label">Load design JSON</span>
+                <input
+                  type="file"
+                  accept="application/json,.json"
+                  (change)="onDesignFileSelected($event)"
+                />
+              </label>
+            </div>
+            <div class="demo__btn-row">
+              @if (editorVisible()) {
+                <button type="button" class="demo__btn demo__btn--danger" (click)="destroyEditor()">
+                  Destroy editor
+                </button>
+              } @else {
+                <button type="button" class="demo__btn" (click)="reopenEditor()">
+                  Reopen editor
+                </button>
+              }
+            </div>
+          </div>
+        </details>
+
+        <details class="demo__section" open>
+          <summary>General</summary>
+          <div class="demo__section-body demo__grid">
+            <label class="demo__field">
+              <span class="demo__label">Theme</span>
+              <select [value]="theme()" (change)="setTheme($any($event.target).value)">
+                @for (option of themeOptions; track option) {
+                  <option [value]="option">{{ option }}</option>
+                }
+              </select>
+            </label>
+            <label class="demo__field">
+              <span class="demo__label">Locale</span>
+              <select [value]="locale()" (change)="setLocale($any($event.target).value)">
+                @for (option of localeOptions; track option) {
+                  <option [value]="option">{{ option }}</option>
+                }
+              </select>
+            </label>
+            <label class="demo__field">
+              <span class="demo__label">Text direction</span>
+              <select
+                [value]="textDirection()"
+                (change)="setTextDirection($any($event.target).value)"
+              >
+                @for (option of dirOptions; track option) {
+                  <option [value]="option">{{ option }}</option>
+                }
+              </select>
+            </label>
+            <label class="demo__field">
+              <span class="demo__label">History limit</span>
+              <input
+                type="number"
+                min="1"
+                step="1"
+                [value]="historyLimit()"
+                (change)="setHistoryLimit(+$any($event.target).value)"
+              />
+            </label>
+            <label class="demo__check">
+              <input
+                type="checkbox"
+                [checked]="warnOnUnsaved()"
+                (change)="setWarnOnUnsaved($any($event.target).checked)"
+              />
+              Warn on unsaved close
+            </label>
+            <label class="demo__check">
+              <input
+                type="checkbox"
+                [checked]="useCustomConfirm()"
+                [disabled]="!warnOnUnsaved()"
+                (change)="setUseCustomConfirm($any($event.target).checked)"
+              />
+              Custom confirm dialog (host-owned)
+            </label>
+            <label class="demo__field demo__field--full">
+              <span class="demo__label">Default tool (plugin id)</span>
+              <select [value]="defaultTool()" (change)="setDefaultTool($any($event.target).value)">
+                <option value="">Auto (first available)</option>
+                @for (tool of defaultToolOptions; track tool.id) {
+                  <option [value]="tool.id">{{ tool.label }} — {{ tool.id }}</option>
+                }
+              </select>
+            </label>
+          </div>
+        </details>
+
+        <details class="demo__section" open>
+          <summary>Toolbar &amp; chrome</summary>
+          <div class="demo__section-body demo__grid">
+            <label class="demo__field">
+              <span class="demo__label">Utilibar position</span>
+              <select
+                [value]="utilsPosition()"
+                (change)="setUtilsPosition($any($event.target).value)"
+              >
+                @for (option of utilsPositions; track option) {
+                  <option [value]="option">{{ option }}</option>
+                }
+              </select>
+            </label>
+            <label class="demo__field">
+              <span class="demo__label">Controls panel</span>
+              <select
+                [value]="controlsPosition()"
+                (change)="setControlsPosition($any($event.target).value)"
+              >
+                @for (option of controlsPositions; track option) {
+                  <option [value]="option">{{ option }}</option>
+                }
+              </select>
+            </label>
+            <label class="demo__field">
+              <span class="demo__label">Toolbar edge</span>
+              <select
+                [value]="toolbarBarPosition()"
+                (change)="setToolbarBarPosition($any($event.target).value)"
+              >
+                @for (option of toolbarBarPositions; track option) {
+                  <option [value]="option">{{ option }}</option>
+                }
+              </select>
+            </label>
+            <label class="demo__field">
+              <span class="demo__label">Action display</span>
+              <select
+                [value]="actionDisplay()"
+                (change)="setActionDisplay($any($event.target).value)"
+              >
+                @for (option of actionDisplays; track option) {
+                  <option [value]="option">{{ option }}</option>
+                }
+              </select>
+            </label>
+            <fieldset class="demo__fieldset demo__field--full">
+              <label class="demo__toggle">
+                <span class="demo__toggle-copy">
+                  <span class="demo__toggle-label">Show save button</span>
+                  <span class="demo__toggle-hint">Export trigger on the chrome toolbar</span>
+                </span>
+                <input
+                  type="checkbox"
+                  role="switch"
+                  [checked]="showSaveButton()"
+                  (change)="setShowSaveButton($any($event.target).checked)"
+                />
+              </label>
+            </fieldset>
+
+            <fieldset class="demo__fieldset demo__field--full">
+              <legend>Chrome toggles</legend>
+              <p class="demo__hint">
+                Show or hide dedicated toolbar controls. Maps to `toolbar.visibleActions` (Compare /
+                History / Layers). Hiding History or Layers here only removes the toolbar button —
+                use the plugin switches below to unload the side-panel tabs.
+              </p>
+              <div class="demo__toggle-list">
+                @for (tool of chromeActionOptions; track tool.id) {
+                  <label class="demo__toggle">
+                    <span class="demo__toggle-copy">
+                      <span class="demo__toggle-label">{{ tool.label }}</span>
+                      <span class="demo__toggle-hint">{{ tool.hint }}</span>
+                    </span>
+                    <input
+                      type="checkbox"
+                      role="switch"
+                      [attr.data-testid]="'chrome-toggle-' + tool.id"
+                      [checked]="isVisibleActionSelected(tool.id)"
+                      (change)="toggleVisibleAction(tool.id, $any($event.target).checked)"
+                    />
+                  </label>
+                }
+              </div>
+              <div class="demo__btn-row">
+                <button
+                  type="button"
+                  class="demo__btn demo__btn--ghost"
+                  (click)="setChromeActionsVisible(true)"
+                >
+                  Show all chrome
+                </button>
+                <button
+                  type="button"
+                  class="demo__btn demo__btn--ghost"
+                  (click)="setChromeActionsVisible(false)"
+                >
+                  Hide all chrome
+                </button>
+              </div>
+            </fieldset>
+
+            <div class="demo__fieldset demo__field--full">
+              <label class="demo__toggle">
+                <span class="demo__toggle-copy">
+                  <span class="demo__toggle-label">History plugin</span>
+                  <span class="demo__toggle-hint">
+                    Omits <code>history-snapshots</code> from <code>config.plugins</code>
+                    (toolbar + side panel). Restarts the editor.
+                  </span>
+                </span>
+                <input
+                  type="checkbox"
+                  role="switch"
+                  data-testid="history-snapshots-plugin-toggle"
+                  [checked]="historySnapshotsPluginEnabled()"
+                  (change)="setHistorySnapshotsPluginEnabled($any($event.target).checked)"
+                />
+              </label>
+              <label class="demo__toggle">
+                <span class="demo__toggle-copy">
+                  <span class="demo__toggle-label">Layers plugin</span>
+                  <span class="demo__toggle-hint">
+                    Omits <code>layers</code> from <code>config.plugins</code> (toolbar + side
+                    panel). Restarts the editor.
+                  </span>
+                </span>
+                <input
+                  type="checkbox"
+                  role="switch"
+                  data-testid="layers-plugin-toggle"
+                  [checked]="layersPluginEnabled()"
+                  (change)="setLayersPluginEnabled($any($event.target).checked)"
+                />
+              </label>
+            </div>
+
+            <fieldset class="demo__fieldset demo__field--full">
+              <legend>Utilibar tool toggles</legend>
+              <p class="demo__hint">
+                Maps to `toolbar.visibleActions` (toggle-list order). Turn any off to hide that
+                tool; turn all off to hide every utilibar tool.
+              </p>
+              <div class="demo__toggle-list demo__toggle-list--compact">
+                @for (tool of utilibarActionOptions; track tool.id) {
+                  <label class="demo__toggle demo__toggle--compact">
+                    <span class="demo__toggle-label">{{ tool.label }}</span>
+                    <input
+                      type="checkbox"
+                      role="switch"
+                      [checked]="isVisibleActionSelected(tool.id)"
+                      (change)="toggleVisibleAction(tool.id, $any($event.target).checked)"
+                    />
+                  </label>
+                }
+              </div>
+              <div class="demo__btn-row">
+                <button
+                  type="button"
+                  class="demo__btn demo__btn--ghost"
+                  (click)="setUtilibarActionsVisible(true)"
+                >
+                  Show all tools
+                </button>
+                <button
+                  type="button"
+                  class="demo__btn demo__btn--ghost"
+                  (click)="setUtilibarActionsVisible(false)"
+                >
+                  Hide all tools
+                </button>
+                <button
+                  type="button"
+                  class="demo__btn demo__btn--ghost"
+                  (click)="setAllVisibleActions(true)"
+                >
+                  Show everything
+                </button>
+              </div>
+            </fieldset>
+          </div>
+        </details>
+
+        <details class="demo__section" open>
+          <summary>Plugins</summary>
+          <div class="demo__section-body">
+            <label class="demo__check">
+              <input
+                type="checkbox"
+                data-testid="host-plugins-toggle"
+                [checked]="hostPluginInstancesEnabled()"
+                (change)="toggleHostPluginInstances($any($event.target).checked)"
+              />
+              Use host plugin instances (`[plugins]` input)
+            </label>
+            <label class="demo__check">
+              <input
+                type="checkbox"
+                data-testid="lazy-plugins-toggle"
+                [checked]="lazyPluginsEnabled()"
+                (change)="onLazyPluginsToggle($any($event.target).checked)"
+              />
+              Opt into lazy plugin loading (`config.plugins`)
+            </label>
+
+            <p class="demo__hint">
+              Catalog lists every first-party editor feature. Always-on plugins load with the shell;
+              optional plugins load by default unless you opt into lazy loading and uncheck them.
+              The demo registers a host <code>Save PNG</code> toolbar action via
+              <code>provideImageEditorPlugins(HostSavePlugin)</code> in
+              <code>app.config</code> + <code>(action)</code> (format chosen by the host).
+            </p>
+
+            <div class="demo__plugin-catalog">
+              @for (plugin of pluginCatalog; track plugin.id) {
+                <article
+                  class="demo__plugin-card"
+                  [class.demo__plugin-card--always-on]="plugin.alwaysOn"
+                >
+                  <div class="demo__plugin-card-head">
+                    @if (plugin.alwaysOn) {
+                      <span class="demo__badge">Always on</span>
+                    }
+                    <strong>{{ plugin.label }}</strong>
+                    <code>{{ plugin.id }}</code>
+                  </div>
+                  <p>{{ plugin.summary }}</p>
+                  @if (!plugin.alwaysOn && lazyPluginsEnabled() && !hostPluginInstancesEnabled()) {
+                    <label class="demo__check">
+                      <input
+                        type="checkbox"
+                        [attr.data-testid]="'plugin-' + plugin.id"
+                        [checked]="isOptionalPluginSelected(plugin.id)"
+                        (change)="toggleOptionalPlugin(plugin.id, $any($event.target).checked)"
+                      />
+                      Include in lazy bundle
+                    </label>
+                  }
+                </article>
+              }
+            </div>
+
+            @if (pluginAliasPresets.length) {
+              <div class="demo__alias-presets">
+                <p class="demo__hint">
+                  Host aliases for `config.plugins` — expands to multiple concrete plugins and
+                  restarts the editor.
+                </p>
+                <div class="demo__btn-row">
+                  @for (alias of pluginAliasPresets; track alias.id) {
+                    <button
+                      type="button"
+                      class="demo__btn"
+                      [attr.title]="alias.summary"
+                      (click)="loadPluginAlias(alias.id)"
+                    >
+                      Load {{ alias.label }}
+                      <code>{{ alias.id }}</code>
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+
+            @if (lazyPluginsEnabled() && !hostPluginInstancesEnabled()) {
+              <button
+                type="button"
+                class="demo__btn demo__btn--primary"
+                data-testid="apply-plugin-selection"
+                (click)="applyPluginSelection()"
+              >
+                Apply plugin set (restarts editor)
+              </button>
+            }
+          </div>
+        </details>
+
+        <details class="demo__section">
+          <summary>Crop</summary>
+          <div class="demo__section-body demo__grid">
+            <label class="demo__check">
+              <input
+                type="checkbox"
+                [checked]="cropAutoResize()"
+                (change)="setCropAutoResize($any($event.target).checked)"
+              />
+              Auto-resize on preset with width/height
+            </label>
+            <label class="demo__check">
+              <input
+                type="checkbox"
+                [checked]="cropForcePng()"
+                (change)="setCropForcePng($any($event.target).checked)"
+              />
+              Force PNG on elliptical crop
+            </label>
+            <label class="demo__check demo__field--full">
+              <input
+                type="checkbox"
+                [checked]="customAspectPresetEnabled()"
+                (change)="setCustomAspectPresetEnabled($any($event.target).checked)"
+              />
+              Include custom Avatar 180×180 aspect preset
+            </label>
+          </div>
+        </details>
+
+        <details class="demo__section">
+          <summary>Transform</summary>
+          <div class="demo__section-body demo__grid">
+            <label class="demo__field">
+              <span class="demo__label">Rotate increment (°)</span>
+              <input
+                type="number"
+                min="1"
+                step="1"
+                [value]="rotateIncrement()"
+                (change)="setRotateIncrement(+$any($event.target).value)"
+              />
+            </label>
+            <label class="demo__check">
+              <input
+                type="checkbox"
+                [checked]="rotateArbitrary()"
+                (change)="setRotateArbitrary($any($event.target).checked)"
+              />
+              Allow arbitrary angle
+            </label>
+          </div>
+        </details>
+
+        <details class="demo__section">
+          <summary>Viewport</summary>
+          <div class="demo__section-body demo__grid">
+            <label class="demo__check">
+              <input
+                type="checkbox"
+                [checked]="viewportWheelZoom()"
+                (change)="setViewportWheelZoom($any($event.target).checked)"
+              />
+              Wheel zoom
+            </label>
+            <label class="demo__check">
+              <input
+                type="checkbox"
+                [checked]="viewportZoomPresetsMenu()"
+                (change)="setViewportZoomPresetsMenu($any($event.target).checked)"
+              />
+              Zoom presets menu
+            </label>
+            <label class="demo__field">
+              <span class="demo__label">Min zoom</span>
+              <input
+                type="number"
+                min="0.01"
+                step="0.01"
+                [value]="viewportMinZoom()"
+                (change)="setViewportMinZoom(+$any($event.target).value)"
+              />
+            </label>
+            <label class="demo__field">
+              <span class="demo__label">Max zoom</span>
+              <input
+                type="number"
+                min="0.1"
+                step="0.1"
+                [value]="viewportMaxZoom()"
+                (change)="setViewportMaxZoom(+$any($event.target).value)"
+              />
+            </label>
+            <label class="demo__field">
+              <span class="demo__label">Zoom step factor</span>
+              <input
+                type="number"
+                min="1.01"
+                step="0.01"
+                [value]="viewportZoomStep()"
+                (change)="setViewportZoomStep(+$any($event.target).value)"
+              />
+            </label>
+          </div>
+        </details>
+
+        <details class="demo__section">
+          <summary>Canvas background</summary>
+          <div class="demo__section-body demo__grid">
+            <label class="demo__check demo__field--full">
+              <input
+                type="checkbox"
+                [checked]="canvasBackgroundEnabled()"
+                (change)="setCanvasBackgroundEnabled($any($event.target).checked)"
+              />
+              Override checkerboard stage color
+            </label>
+            @if (canvasBackgroundEnabled()) {
+              <label class="demo__field">
+                <span class="demo__label">Background color</span>
+                <input
+                  type="color"
+                  [value]="canvasBackgroundColor()"
+                  (change)="setCanvasBackgroundColor($any($event.target).value)"
+                />
+              </label>
+            }
+          </div>
+        </details>
+
+        <details class="demo__section">
+          <summary>Image overlay</summary>
+          <div class="demo__section-body">
+            <label class="demo__check">
+              <input
+                type="checkbox"
+                [checked]="overlayGalleryEnabled()"
+                (change)="setOverlayGalleryEnabled($any($event.target).checked)"
+              />
+              Provide sample gallery item (`/fixtures/sample.jpg`)
+            </label>
+          </div>
+        </details>
+
+        <details class="demo__section">
+          <summary>Crop mask</summary>
+          <div class="demo__section-body">
+            <p class="demo__hint">
+              Host SVG shapes via <code>config.cropMask.gallery</code> (unit-square path
+              <code>d</code>). Shown under built-in shapes in the Crop mask tool.
+            </p>
+            <label class="demo__check">
+              <input
+                type="checkbox"
+                [checked]="cropMaskGalleryEnabled()"
+                (change)="setCropMaskGalleryEnabled($any($event.target).checked)"
+              />
+              Provide host crop-mask gallery (shield, arrow, cloud, badge, blob)
+            </label>
+          </div>
+        </details>
+
+        <details class="demo__section">
+          <summary>Stickers</summary>
+          <div class="demo__section-body demo__grid">
+            <label class="demo__check">
+              <input
+                type="checkbox"
+                [checked]="stickersAllowUpload()"
+                (change)="setStickersAllowUpload($any($event.target).checked)"
+              />
+              Allow upload in stickers panel
+            </label>
+            <label class="demo__check">
+              <input
+                type="checkbox"
+                [checked]="stickersGalleryEnabled()"
+                (change)="setStickersGalleryEnabled($any($event.target).checked)"
+              />
+              Provide host sticker gallery sample
+            </label>
+          </div>
+        </details>
+
+        <details class="demo__section">
+          <summary>Watermark</summary>
+          <div class="demo__section-body demo__grid">
+            <label class="demo__field demo__field--full">
+              <span class="demo__label">Default text</span>
+              <input
+                type="text"
+                [value]="watermarkDefaultText()"
+                (change)="setWatermarkDefaultText($any($event.target).value)"
+              />
+            </label>
+            <label class="demo__check">
+              <input
+                type="checkbox"
+                [checked]="watermarkImageEnabled()"
+                (change)="setWatermarkImageEnabled($any($event.target).checked)"
+              />
+              Provide default watermark image
+            </label>
+          </div>
+        </details>
+
+        <details class="demo__section">
+          <summary>Templates</summary>
+          <div class="demo__section-body">
+            <p class="demo__hint">
+              Social / output size presets (`templates.tool`). Some presets include placeholder
+              text/shapes on apply. Unchecked uses the built-in gallery; checked replaces it with a
+              small host demo gallery via `config.templates.gallery`.
+            </p>
+            <label class="demo__check">
+              <input
+                type="checkbox"
+                [checked]="templatesHostGalleryEnabled()"
+                (change)="setTemplatesHostGalleryEnabled($any($event.target).checked)"
+              />
+              Provide host templates gallery override
+            </label>
+          </div>
+        </details>
+
+        <details class="demo__section">
+          <summary>Color picker</summary>
+          <div class="demo__section-body">
+            <p class="demo__hint">
+              Eyedropper on color fields (text, shapes, drawing, path, watermark). Requires the
+              `color-picker` plugin — no utilibar chrome.
+            </p>
+            <label class="demo__check">
+              <input
+                type="checkbox"
+                [checked]="colorPickerEnabled()"
+                (change)="setColorPickerEnabled($any($event.target).checked)"
+              />
+              Show eyedropper on color fields (`config.colorPicker.enabled`)
+            </label>
+          </div>
+        </details>
+
+        <details class="demo__section">
+          <summary>Other features</summary>
+          <div class="demo__section-body">
+            <p class="demo__hint">
+              These tools have no host knobs beyond plugin inclusion and utilibar visibility above.
+            </p>
+            <ul class="demo__feature-list">
+              <li><strong>Adjustments / Effects / Filters</strong> — raster preview tools</li>
+              <li><strong>Focus</strong> — radial bokeh &amp; tilt-shift</li>
+              <li><strong>Crop mask</strong> — shape clip with transparent outside</li>
+              <li><strong>Frame</strong> — decorative borders</li>
+              <li><strong>Text / Shapes / Draw / Path</strong> — annotation tools</li>
+              <li><strong>Compare</strong> — hold/pin original (`compare.original`)</li>
+              <li><strong>History / Layers</strong> — inspector panels</li>
+              <li><strong>Persistence</strong> — design JSON in Source &amp; session</li>
+              <li><strong>Export</strong> — always-on save pipeline</li>
+            </ul>
+          </div>
+        </details>
+      </div>
+    </aside>
+
+    <div class="demo__main">
+      @if (editorVisible()) {
+        <section class="demo__editor" aria-label="Image editor">
+          <fluxio-image-editor
+            [source]="source()"
+            [config]="editorConfig()"
+            [plugins]="editorPlugins() ?? []"
+            (ready)="onReady($event)"
+            (changed)="onChanged()"
+            (saved)="onSaved($event)"
+            (action)="onAction($event)"
+            (confirmClose)="onConfirmClose($event)"
+            (closed)="onClosed($event)"
+            (error)="onError($event)"
+          />
+        </section>
+      } @else {
+        <section class="demo__editor demo__editor--empty" aria-label="Editor destroyed">
+          <p>Editor destroyed. Use Reopen editor to start a clean session.</p>
+        </section>
+      }
+
+      <footer class="demo__footer">
+        <p>Last event: {{ lastEvent() }}</p>
+        @if (lastExportSize(); as size) {
+          <p>Last export: {{ size }} bytes</p>
+        }
+        @if (lastError(); as message) {
+          <p class="demo__error">{{ message }}</p>
+        }
+      </footer>
+    </div>
+  </div>
+
+  @if (pendingConfirmClose(); as pending) {
+    <div class="demo__dialog-backdrop" role="presentation" (click)="resolveConfirmClose(false)">
+      <div
+        class="demo__dialog"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="demo-confirm-title"
+        aria-describedby="demo-confirm-desc"
+        (click)="$event.stopPropagation()"
+      >
+        <h2 id="demo-confirm-title">Unsaved changes</h2>
+        <p id="demo-confirm-desc">
+          @if (pending.dirty) {
+            You have unsaved edits. Close the editor anyway?
+          } @else {
+            Close the editor?
+          }
+        </p>
+        <div class="demo__dialog-actions">
+          <button type="button" class="demo__btn" (click)="resolveConfirmClose(false)">
+            Keep editing
+          </button>
+          <button
+            type="button"
+            class="demo__btn demo__btn--danger"
+            (click)="resolveConfirmClose(true)"
+          >
+            Close anyway
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</main>

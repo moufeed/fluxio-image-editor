@@ -1,0 +1,132 @@
+<div
+  class="fluxio-image-editor__controls-group fluxio-image-editor__controls-group--adjustments"
+  role="group"
+  [attr.aria-label]="t('rulers.tool')"
+>
+  <div class="fluxio-image-editor__controls-main fluxio-image-editor__controls-main--sliders">
+    <span class="fluxio-image-editor__controls-title">{{ t('rulers.tool') }}</span>
+    <p class="fluxio-image-editor__controls-hint">{{ t('rulers.hint') }}</p>
+
+    <section class="fluxio-control-section">
+      <header class="fluxio-control-section__header">
+        <span class="fluxio-control-section__title">{{ t('rulers.grid') }}</span>
+      </header>
+      <div class="fluxio-control-section__body">
+        <div
+          class="fluxio-segmented fluxio-segmented--presets fluxio-rulers-presets"
+          role="radiogroup"
+          [attr.aria-label]="t('rulers.gridSize')"
+        >
+          @for (size of gridPresets; track size) {
+            <button
+              type="button"
+              class="fluxio-btn fluxio-btn--icon fluxio-rulers-preset-btn"
+              role="radio"
+              [class.fluxio-btn--active]="markupSnap().gridSize === size"
+              [attr.aria-checked]="markupSnap().gridSize === size"
+              [attr.aria-label]="gridLabel(size)"
+              [attr.title]="gridLabel(size)"
+              (click)="onGridSize(size)"
+            >
+              <span class="fluxio-rulers-preset-btn__label">{{ gridLabel(size) }}</span>
+            </button>
+          }
+        </div>
+        <label class="fluxio-check">
+          <input
+            type="checkbox"
+            [checked]="markupSnap().showGrid"
+            [disabled]="markupSnap().gridSize <= 0"
+            (change)="onToggleShowGrid()"
+          />
+          <span>{{ t('rulers.showGrid') }}</span>
+        </label>
+      </div>
+    </section>
+
+    <section class="fluxio-control-section">
+      <header class="fluxio-control-section__header">
+        <span class="fluxio-control-section__title">{{ t('rulers.snap') }}</span>
+      </header>
+      <div class="fluxio-control-section__body">
+        <div
+          class="fluxio-segmented fluxio-segmented--presets fluxio-rulers-presets"
+          role="radiogroup"
+          [attr.aria-label]="t('rulers.snapThreshold')"
+        >
+          @for (size of snapPresets; track size) {
+            <button
+              type="button"
+              class="fluxio-btn fluxio-btn--icon fluxio-rulers-preset-btn"
+              role="radio"
+              [class.fluxio-btn--active]="markupSnap().snapThreshold === size"
+              [attr.aria-checked]="markupSnap().snapThreshold === size"
+              [attr.aria-label]="snapLabel(size)"
+              [attr.title]="snapLabel(size)"
+              (click)="onSnapThreshold(size)"
+            >
+              <span class="fluxio-rulers-preset-btn__label">{{ snapLabel(size) }}</span>
+            </button>
+          }
+        </div>
+        <label class="fluxio-check">
+          <input
+            type="checkbox"
+            [checked]="snapToContextActive()"
+            (change)="onToggleSnapToContext()"
+          />
+          <span>{{ t('rulers.snapToContext') }}</span>
+        </label>
+      </div>
+    </section>
+
+    <section class="fluxio-control-section">
+      <header class="fluxio-control-section__header">
+        <span class="fluxio-control-section__title">{{ t('rulers.guides') }}</span>
+        <span class="fluxio-control-section__value">{{ markupSnap().guides.length }}</span>
+      </header>
+      <div class="fluxio-control-section__body">
+        <div
+          class="fluxio-segmented fluxio-segmented--presets"
+          role="group"
+          [attr.aria-label]="t('rulers.showRulers')"
+        >
+          <button
+            type="button"
+            class="fluxio-btn"
+            [class.fluxio-btn--active]="markupSnap().showRulers"
+            [attr.aria-pressed]="markupSnap().showRulers"
+            (click)="onToggleShowRulers()"
+          >
+            {{ t('rulers.showRulers') }}
+          </button>
+        </div>
+        <div class="fluxio-control-row fluxio-control-row--compact">
+          <button type="button" class="fluxio-btn" (click)="onAddVertical()">
+            {{ t('rulers.addVertical') }}
+          </button>
+          <button type="button" class="fluxio-btn" (click)="onAddHorizontal()">
+            {{ t('rulers.addHorizontal') }}
+          </button>
+          <button
+            type="button"
+            class="fluxio-btn fluxio-btn--clear"
+            [disabled]="markupSnap().guides.length === 0"
+            (click)="onClearGuides()"
+          >
+            {{ t('rulers.clearGuides') }}
+          </button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <fluxio-preview-tool-actions
+    [resetLabel]="t('rulers.reset')"
+    [cancelLabel]="t('rulers.cancel')"
+    [applyLabel]="t('rulers.done')"
+    (reset)="onReset()"
+    (cancel)="onDone()"
+    (apply)="onDone()"
+  />
+</div>

@@ -1,0 +1,137 @@
+/* To learn more about Typescript configuration file: https://www.typescriptlang.org/docs/handbook/tsconfig-json.html. */
+/* To learn more about Angular compiler options: https://angular.dev/reference/configs/angular-compiler-options. */
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noImplicitReturns": true,
+    "paths": {
+      "fluxio-image-editor": ["./projects/fluxio-image-editor/src/public-api.ts"],
+      "fluxio-image-editor/core": ["./projects/fluxio-image-editor/core/src/public-api.ts"],
+      "fluxio-image-editor/renderer-fabric": [
+        "./projects/fluxio-image-editor/renderer-fabric/src/public-api.ts"
+      ],
+      "fluxio-image-editor/plugins/transform": [
+        "./projects/fluxio-image-editor/plugins/transform/src/public-api.ts"
+      ],
+      "fluxio-image-editor/plugins/export": [
+        "./projects/fluxio-image-editor/plugins/export/src/public-api.ts"
+      ],
+      "fluxio-image-editor/plugins/viewport": [
+        "./projects/fluxio-image-editor/plugins/viewport/src/public-api.ts"
+      ],
+      "fluxio-image-editor/plugins/crop": [
+        "./projects/fluxio-image-editor/plugins/crop/src/public-api.ts"
+      ],
+      "fluxio-image-editor/plugins/adjustments": [
+        "./projects/fluxio-image-editor/plugins/adjustments/src/public-api.ts"
+      ],
+      "fluxio-image-editor/plugins/effects": [
+        "./projects/fluxio-image-editor/plugins/effects/src/public-api.ts"
+      ],
+      "fluxio-image-editor/plugins/filters": [
+        "./projects/fluxio-image-editor/plugins/filters/src/public-api.ts"
+      ],
+      "fluxio-image-editor/plugins/focus": [
+        "./projects/fluxio-image-editor/plugins/focus/src/public-api.ts"
+      ],
+      "fluxio-image-editor/plugins/redact": [
+        "./projects/fluxio-image-editor/plugins/redact/src/public-api.ts"
+      ],
+      "fluxio-image-editor/plugins/crop-mask": [
+        "./projects/fluxio-image-editor/plugins/crop-mask/src/public-api.ts"
+      ],
+      "fluxio-image-editor/plugins/color-overlay": [
+        "./projects/fluxio-image-editor/plugins/color-overlay/src/public-api.ts"
+      ],
+      "fluxio-image-editor/plugins/frame": [
+        "./projects/fluxio-image-editor/plugins/frame/src/public-api.ts"
+      ],
+      "fluxio-image-editor/plugins/text": [
+        "./projects/fluxio-image-editor/plugins/text/src/public-api.ts"
+      ],
+      "fluxio-image-editor/plugins/shapes": [
+        "./projects/fluxio-image-editor/plugins/shapes/src/public-api.ts"
+      ],
+      "fluxio-image-editor/plugins/drawing": [
+        "./projects/fluxio-image-editor/plugins/drawing/src/public-api.ts"
+      ],
+      "fluxio-image-editor/plugins/path": [
+        "./projects/fluxio-image-editor/plugins/path/src/public-api.ts"
+      ],
+      "fluxio-image-editor/plugins/image-overlay": [
+        "./projects/fluxio-image-editor/plugins/image-overlay/src/public-api.ts"
+      ],
+      "fluxio-image-editor/plugins/watermark": [
+        "./projects/fluxio-image-editor/plugins/watermark/src/public-api.ts"
+      ],
+      "fluxio-image-editor/plugins/persistence": [
+        "./projects/fluxio-image-editor/plugins/persistence/src/public-api.ts"
+      ],
+      "fluxio-image-editor/plugins/compare": [
+        "./projects/fluxio-image-editor/plugins/compare/src/public-api.ts"
+      ],
+      "fluxio-image-editor/plugins/history-snapshots": [
+        "./projects/fluxio-image-editor/plugins/history-snapshots/src/public-api.ts"
+      ],
+      "fluxio-image-editor/plugins/layers": [
+        "./projects/fluxio-image-editor/plugins/layers/src/public-api.ts"
+      ],
+      "fluxio-image-editor/plugins/templates": [
+        "./projects/fluxio-image-editor/plugins/templates/src/public-api.ts"
+      ],
+      "fluxio-image-editor/plugins/color-picker": [
+        "./projects/fluxio-image-editor/plugins/color-picker/src/public-api.ts"
+      ],
+      "fluxio-image-editor/plugins/stickers": [
+        "./projects/fluxio-image-editor/plugins/stickers/src/public-api.ts"
+      ],
+      "fluxio-image-editor/plugins/emoji": [
+        "./projects/fluxio-image-editor/plugins/emoji/src/public-api.ts"
+      ],
+      "fluxio-image-editor/plugins/batch-export": [
+        "./projects/fluxio-image-editor/plugins/batch-export/src/public-api.ts"
+      ],
+      "fluxio-image-editor/plugins/rulers": [
+        "./projects/fluxio-image-editor/plugins/rulers/src/public-api.ts"
+      ],
+      "fluxio-image-editor/plugins/fill": [
+        "./projects/fluxio-image-editor/plugins/fill/src/public-api.ts"
+      ],
+      "fluxio-image-editor/testing": ["./projects/fluxio-image-editor/testing/src/public-api.ts"]
+    },
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "ES2022",
+    "module": "preserve"
+  },
+  "angularCompilerOptions": {
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "strictTemplates": true
+  },
+  "files": [],
+  "references": [
+    {
+      "path": "./projects/fluxio-image-editor/tsconfig.lib.json"
+    },
+    {
+      "path": "./projects/fluxio-image-editor/tsconfig.spec.json"
+    },
+    {
+      "path": "./projects/demo/tsconfig.app.json"
+    },
+    {
+      "path": "./projects/demo/tsconfig.spec.json"
+    },
+    {
+      "path": "./projects/docs/tsconfig.app.json"
+    }
+  ]
+}

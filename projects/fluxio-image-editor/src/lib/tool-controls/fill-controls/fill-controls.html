@@ -1,0 +1,140 @@
+<div
+  class="fluxio-image-editor__controls-group fluxio-image-editor__controls-group--adjustments"
+  role="group"
+  [attr.aria-label]="t('fill.tool')"
+>
+  <div class="fluxio-image-editor__controls-main fluxio-image-editor__controls-main--sliders">
+    <span class="fluxio-image-editor__controls-title">{{ t('fill.tool') }}</span>
+    <p class="fluxio-control-hint">{{ t('fill.hint') }}</p>
+
+    <div
+      class="fluxio-segmented fluxio-segmented--presets fluxio-color-overlay-modes"
+      role="radiogroup"
+      [attr.aria-label]="t('fill.mode')"
+    >
+      @for (mode of modeChoices; track mode) {
+        <button
+          type="button"
+          class="fluxio-btn fluxio-btn--icon fluxio-color-overlay-mode-btn"
+          role="radio"
+          [class.fluxio-btn--active]="fillMode() === mode"
+          [attr.aria-checked]="fillMode() === mode"
+          [attr.aria-label]="t('fill.' + mode)"
+          [attr.title]="t('fill.' + mode)"
+          (click)="onModeChange(mode)"
+        >
+          <svg class="fluxio-btn__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path [attr.d]="modeIconPaths[mode]" fill="currentColor" fill-rule="evenodd" />
+          </svg>
+          <span class="fluxio-color-overlay-mode-btn__label">{{ t('fill.' + mode) }}</span>
+        </button>
+      }
+    </div>
+
+    @if (showSolid()) {
+      <fluxio-color-alpha-field
+        [label]="t('fill.color')"
+        [opacityLabel]="t('fill.opacity')"
+        [showOpacity]="false"
+        [showRecent]="true"
+        [value]="fillColor()"
+        [fallback]="colorFallback"
+        (valueChange)="onColorInput($event)"
+        (valueCommit)="onColorInput($event)"
+      />
+    }
+
+    @if (showImage()) {
+      <label
+        class="fluxio-upload-dropzone"
+        [class.fluxio-upload-dropzone--active]="dragOver()"
+        (dragenter)="onDragEnter($event)"
+        (dragover)="onDragOver($event)"
+        (dragleave)="onDragLeave($event)"
+        (drop)="onDrop($event)"
+      >
+        <svg
+          class="fluxio-upload-dropzone__icon"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path [attr.d]="uploadIconPath" fill="currentColor" />
+        </svg>
+        <span class="fluxio-upload-dropzone__title">{{ t('fill.upload') }}</span>
+        <span class="fluxio-upload-dropzone__hint">{{ t('fill.dropHint') }}</span>
+        <input
+          class="fluxio-file-input"
+          type="file"
+          accept="image/*"
+          (change)="onFileSelected($event)"
+        />
+      </label>
+
+      @if (fillGallery().length > 0) {
+        <section class="fluxio-control-section">
+          <header class="fluxio-control-section__header">
+            <span class="fluxio-control-section__title">{{ t('fill.gallery') }}</span>
+          </header>
+          <div class="fluxio-control-section__body">
+            <div class="fluxio-overlay-gallery" role="list">
+              @for (item of fillGallery(); track item.id) {
+                <button
+                  type="button"
+                  class="fluxio-overlay-gallery__item"
+                  role="listitem"
+                  [class.fluxio-overlay-gallery__item--active]="
+                    presentation.draftFill().imageSrc === item.src
+                  "
+                  [attr.aria-label]="item.label"
+                  [attr.title]="item.label"
+                  (click)="onGallerySelect(item.src)"
+                >
+                  <img [src]="item.src" [alt]="item.label" />
+                </button>
+              }
+            </div>
+          </div>
+        </section>
+      } @else if (!hasImageSrc()) {
+        <p class="fluxio-image-editor__controls-hint">{{ t('fill.empty') }}</p>
+      }
+
+      @if (customImageSrc(); as src) {
+        <div class="fluxio-overlay-gallery" role="list">
+          <div class="fluxio-overlay-gallery__item fluxio-overlay-gallery__item--active" role="listitem">
+            <img [src]="src" [alt]="t('fill.image')" />
+          </div>
+        </div>
+      }
+    }
+
+    @if (fillMode() !== 'none') {
+      <label class="fluxio-slider" [class.fluxio-slider--active]="opacityUi() !== 100">
+        <span class="fluxio-slider__header">
+          <span class="fluxio-slider__name">{{ t('fill.opacity') }}</span>
+          <span class="fluxio-slider__value" aria-hidden="true">{{ opacityUi() }}</span>
+        </span>
+        <span class="fluxio-slider__control">
+          <input
+            type="range"
+            min="0"
+            max="100"
+            step="1"
+            [value]="opacityUi()"
+            (input)="onOpacityInput(+$any($event.target).value)"
+          />
+        </span>
+      </label>
+    }
+  </div>
+
+  <fluxio-preview-tool-actions
+    [applyLabel]="t('fill.apply')"
+    [cancelLabel]="t('fill.cancel')"
+    [resetLabel]="t('fill.reset')"
+    (apply)="applyFill()"
+    (cancel)="cancelFill()"
+    (reset)="resetFill()"
+  />
+</div>

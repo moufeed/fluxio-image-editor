@@ -1,0 +1,39 @@
+{
+  "name": "fluxio-image-editor",
+  "version": "0.1.0",
+  "description": "Angular image editor component with a plugin architecture and Fabric.js renderer.",
+  "license": "MIT",
+  "author": "Mofid Juboqji",
+  "homepage": "https://moufeed.github.io/fluxio-image-editor/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/moufeed/fluxio-image-editor.git"
+  },
+  "bugs": {
+    "url": "https://github.com/moufeed/fluxio-image-editor/issues"
+  },
+  "keywords": [
+    "angular",
+    "image-editor",
+    "image",
+    "editor",
+    "canvas",
+    "fabric",
+    "crop",
+    "annotations",
+    "plugins"
+  ],
+  "peerDependencies": {
+    "@angular/common": "^21.2.0",
+    "@angular/core": "^21.2.0",
+    "fabric": "^6.9.0"
+  },
+  "dependencies": {
+    "nanoid": "^6.0.0",
+    "tslib": "^2.3.0"
+  },
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  }
+}

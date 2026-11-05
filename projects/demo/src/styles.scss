@@ -1,0 +1,35 @@
+/* You can add global styles to this file, and also import other style files */
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+/*
+ * Demo custom theme — CSS-first branding.
+ * Activated when demo sets config.theme = 'custom' and themeClass = 'demo-theme-aurora'.
+ */
+.fluxio-image-editor.demo-theme-aurora[data-theme='custom'] {
+  --fluxio-bg: #0b1520;
+  --fluxio-bg-elevated: #122233;
+  --fluxio-bg-panel: #0e1a28;
+  --fluxio-border: #243848;
+  --fluxio-border-strong: #35566c;
+  --fluxio-text: #e8f4ff;
+  --fluxio-muted: #8fb0c8;
+  --fluxio-accent: #2dd4bf;
+  --fluxio-accent-hover: #5eead4;
+  --fluxio-accent-contrast: #04201c;
+  --fluxio-danger: #fb7185;
+  --fluxio-warn: #fbbf24;
+  --fluxio-ok: #34d399;
+  --fluxio-control-bg: #163044;
+  --fluxio-control-border: #3a5f78;
+  --fluxio-focus: #2dd4bf;
+  --fluxio-shadow: 0 12px 32px rgb(0 20 32 / 45%);
+  --fluxio-canvas-a: #152839;
+  --fluxio-canvas-b: #0f1e2c;
+  --fluxio-range-track: #2a4558;
+  --fluxio-range-thumb: #f0fdfa;
+  --fluxio-range-thumb-border: color-mix(in srgb, var(--fluxio-accent) 50%, var(--fluxio-border-strong));
+}

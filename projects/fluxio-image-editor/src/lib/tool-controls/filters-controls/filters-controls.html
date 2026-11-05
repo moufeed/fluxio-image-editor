@@ -1,0 +1,37 @@
+<div
+  class="fluxio-image-editor__controls-group fluxio-image-editor__controls-group--filters"
+  role="group"
+  [attr.aria-label]="t('filters.tool')"
+>
+  <div class="fluxio-image-editor__controls-main fluxio-image-editor__controls-main--filters">
+    <span class="fluxio-image-editor__controls-title">{{ t('filters.tool') }}</span>
+    <div class="fluxio-filter-thumbs" role="listbox" [attr.aria-label]="t('filters.tool')">
+      @for (preset of filterPresets(); track preset) {
+        <button
+          type="button"
+          class="fluxio-filter-thumbs__item"
+          role="option"
+          [class.fluxio-filter-thumbs__item--active]="draftFilters().preset === preset"
+          [attr.aria-selected]="draftFilters().preset === preset"
+          [attr.aria-label]="filterPresetLabel(preset)"
+          (click)="selectFilterPreset(preset)"
+        >
+          @if (filterThumbUrls()[preset]; as thumbSrc) {
+            <img [src]="thumbSrc" alt="" />
+          } @else {
+            <span class="fluxio-filter-thumbs__placeholder" aria-hidden="true"></span>
+          }
+          <span class="fluxio-filter-thumbs__label">{{ filterPresetLabel(preset) }}</span>
+        </button>
+      }
+    </div>
+  </div>
+  <fluxio-preview-tool-actions
+    [resetLabel]="t('filters.reset')"
+    [cancelLabel]="t('filters.cancel')"
+    [applyLabel]="t('filters.apply')"
+    (reset)="resetDraftFilters()"
+    (cancel)="cancelFilters()"
+    (apply)="applyFilters()"
+  />
+</div>

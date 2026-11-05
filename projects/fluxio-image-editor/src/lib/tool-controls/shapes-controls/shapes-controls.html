@@ -1,0 +1,314 @@
+<div
+  class="fluxio-image-editor__controls-group fluxio-image-editor__controls-group--inspector"
+  role="group"
+  [attr.aria-label]="t('shapes.tool')"
+>
+  <div class="fluxio-image-editor__controls-main fluxio-image-editor__controls-main--form">
+    <div class="fluxio-image-editor__controls-lead">
+      <span class="fluxio-image-editor__controls-title">{{ t('shapes.tool') }}</span>
+      <button type="button" class="fluxio-btn fluxio-btn--primary" (click)="addDraftShape()">
+        {{ t('shapes.add') }}
+      </button>
+    </div>
+    @if (draftShapes().length === 0) {
+      <p class="fluxio-image-editor__controls-hint">{{ t('shapes.empty') }}</p>
+    } @else {
+      <section class="fluxio-control-section fluxio-control-section--quiet fluxio-control-section--layers">
+        <header class="fluxio-control-section__header">
+          <span class="fluxio-control-section__title">{{ t('annotation.objects') }}</span>
+          <span class="fluxio-control-section__value">{{ draftShapes().length }}</span>
+        </header>
+        <div
+          class="fluxio-annotation-list"
+          role="listbox"
+          [attr.aria-label]="t('shapes.tool')"
+        >
+          @for (item of draftShapes(); track item.id) {
+            <div
+              class="fluxio-annotation-list__layer"
+              role="option"
+              [attr.aria-selected]="selectedShapeIds().includes(item.id)"
+              [class.fluxio-annotation-list__layer--active]="selectedShapeIds().includes(item.id)"
+              (click)="selectDraftShape(item.id, $event)"
+              (keydown.enter)="selectDraftShape(item.id, $event)"
+              tabindex="0"
+            >
+              <span class="fluxio-annotation-list__layer-preview">
+                <span
+                  class="fluxio-annotation-list__layer-preview--swatch"
+                  [style.background]="item.stroke"
+                  aria-hidden="true"
+                ></span>
+              </span>
+              <span class="fluxio-annotation-list__layer-name">{{ t('shapes.' + item.kind) }}</span>
+              <span class="fluxio-annotation-list__layer-actions">
+                <span
+                  class="fluxio-annotation-list__layer-action fluxio-annotation-list__layer-action--delete"
+                  (click)="deleteDraftShape(item.id); $event.stopPropagation()"
+                  aria-hidden="true"
+                  [attr.title]="t('annotation.delete')"
+                >&times;</span>
+              </span>
+            </div>
+          }
+        </div>
+      </section>
+    }
+    <p class="fluxio-image-editor__controls-hint">{{ t('annotation.keyboardHint') }}</p>
+    <section class="fluxio-control-section fluxio-control-section--flush">
+      <div class="fluxio-field fluxio-field--stack">
+        <span class="fluxio-field__label">{{ t('shapes.kind') }}</span>
+        <div class="fluxio-segmented" role="group" [attr.aria-label]="t('shapes.kind')">
+          @for (kind of shapeKinds; track kind) {
+            <button
+              type="button"
+              class="fluxio-btn fluxio-btn--icon fluxio-shape-kind-btn"
+              [class.fluxio-btn--active]="shapeDraftKind() === kind"
+              [attr.aria-pressed]="shapeDraftKind() === kind"
+              [attr.aria-label]="t('shapes.' + kind)"
+              [attr.title]="t('shapes.' + kind)"
+              (click)="shapeDraftKind.set(kind)"
+            >
+              <svg
+                class="fluxio-btn__icon"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                focusable="false"
+              >
+                @if (kind === 'line') {
+                  <path
+                    [attr.d]="shapeIconPaths[kind]"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                  />
+                } @else if (kind === 'arrow') {
+                  <path
+                    [attr.d]="shapeIconPaths[kind]"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linejoin="round"
+                  />
+                } @else {
+                  <path [attr.d]="shapeIconPaths[kind]" fill="currentColor" />
+                }
+              </svg>
+            </button>
+          }
+        </div>
+      </div>
+      @if (shapeDraftKind() === 'polygon' || selectedShape()?.kind === 'polygon') {
+        <label class="fluxio-field fluxio-field--stack fluxio-field--compact">
+          <span class="fluxio-field__label">{{ t('shapes.sides') }}</span>
+          <span class="fluxio-field__control">
+            <input
+              type="number"
+              min="3"
+              max="12"
+              step="1"
+              [value]="polygonSidesValue()"
+              (input)="updateSelectedShapePolygonSides(+$any($event.target).value)"
+            />
+          </span>
+        </label>
+      }
+    </section>
+    @if (selectedShape(); as shape) {
+      <section class="fluxio-control-section">
+        <header class="fluxio-control-section__header">
+          <span class="fluxio-control-section__title">{{ t('controls.appearance') }}</span>
+        </header>
+        <div class="fluxio-control-section__body">
+          <fluxio-color-alpha-field
+            [label]="t('shapes.stroke')"
+            [opacityLabel]="t('color.opacity')"
+            [showRecent]="shape.kind === 'line' || shape.kind === 'arrow'"
+            [value]="shape.stroke"
+            [fallback]="colorFallbackRed"
+            (valueChange)="updateSelectedShapeStroke($event)"
+            (valueCommit)="commitSelectedShapeProps()"
+          />
+          @if (shape.kind === 'rect' || shape.kind === 'ellipse' || shape.kind === 'polygon') {
+            <fluxio-color-alpha-field
+              [label]="t('shapes.fill')"
+              [opacityLabel]="t('color.opacity')"
+              [value]="shape.fill"
+              [fallback]="colorFallbackBlack"
+              (valueChange)="updateSelectedShapeFill($event)"
+              (valueCommit)="commitSelectedShapeProps()"
+            />
+          }
+          <label class="fluxio-field fluxio-field--stack fluxio-field--compact">
+            <span class="fluxio-field__label">{{ t('shapes.strokeWidth') }}</span>
+            <span class="fluxio-field__control">
+              <input
+                type="number"
+                min="1"
+                max="64"
+                [value]="shape.strokeWidth"
+                (input)="updateSelectedShapeStrokeWidth(+$any($event.target).value)"
+                (change)="commitSelectedShapeProps()"
+              />
+              <span class="fluxio-field__suffix" aria-hidden="true">px</span>
+            </span>
+          </label>
+          @if (shape.kind === 'line' || shape.kind === 'arrow') {
+            <div class="fluxio-field fluxio-field--stack">
+              <span class="fluxio-field__label">{{ t('shapes.lineStart') }}</span>
+              <div
+                class="fluxio-segmented fluxio-segmented--wrap fluxio-line-end-styles"
+                role="group"
+                [attr.aria-label]="t('shapes.lineStart')"
+              >
+                @for (style of lineEndStyles; track style) {
+                  <button
+                    type="button"
+                    class="fluxio-btn fluxio-btn--icon fluxio-line-end-btn"
+                    [class.fluxio-btn--active]="shape.lineStart === style"
+                    [attr.aria-pressed]="shape.lineStart === style"
+                    [attr.aria-label]="t('shapes.lineEnd.' + style)"
+                    [attr.title]="t('shapes.lineEnd.' + style)"
+                    (click)="updateSelectedShapeLineStart(style); commitSelectedShapeProps()"
+                  >
+                    <svg
+                      class="fluxio-btn__icon fluxio-line-end-btn__icon fluxio-line-end-btn__icon--start"
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                      focusable="false"
+                    >
+                      <path
+                        [attr.d]="lineEndIconPaths[style]"
+                        [attr.fill]="lineEndIconFilled.has(style) ? 'currentColor' : 'none'"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
+                  </button>
+                }
+              </div>
+            </div>
+            <div class="fluxio-field fluxio-field--stack">
+              <span class="fluxio-field__label">{{ t('shapes.lineEnd') }}</span>
+              <div
+                class="fluxio-segmented fluxio-segmented--wrap fluxio-line-end-styles"
+                role="group"
+                [attr.aria-label]="t('shapes.lineEnd')"
+              >
+                @for (style of lineEndStyles; track style) {
+                  <button
+                    type="button"
+                    class="fluxio-btn fluxio-btn--icon fluxio-line-end-btn"
+                    [class.fluxio-btn--active]="shape.lineEnd === style"
+                    [attr.aria-pressed]="shape.lineEnd === style"
+                    [attr.aria-label]="t('shapes.lineEnd.' + style)"
+                    [attr.title]="t('shapes.lineEnd.' + style)"
+                    (click)="updateSelectedShapeLineEnd(style); commitSelectedShapeProps()"
+                  >
+                    <svg
+                      class="fluxio-btn__icon fluxio-line-end-btn__icon"
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                      focusable="false"
+                    >
+                      <path
+                        [attr.d]="lineEndIconPaths[style]"
+                        [attr.fill]="lineEndIconFilled.has(style) ? 'currentColor' : 'none'"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+      @if (hasMultiSelection()) {
+        <p class="fluxio-image-editor__controls-hint" role="status">{{ multiSelectionLabel() }}</p>
+      } @else if (selectedGeometry(); as geo) {
+        <section class="fluxio-control-section">
+          <header class="fluxio-control-section__header">
+            <span class="fluxio-control-section__title">{{ t('annotation.geometry') }}</span>
+          </header>
+          <div
+            class="fluxio-geometry-grid"
+            role="group"
+            [attr.aria-label]="t('annotation.geometry')"
+          >
+            <label class="fluxio-field fluxio-field--compact">
+              <span class="fluxio-field__label">{{ t('annotation.x') }}</span>
+              <span class="fluxio-field__control">
+                <input
+                  type="number"
+                  [value]="geo.x | number: '1.0-0'"
+                  (change)="updateSelectedGeometry({ x: +$any($event.target).value }); commitSelectedGeometry()"
+                />
+                <span class="fluxio-field__suffix" aria-hidden="true">px</span>
+              </span>
+            </label>
+            <label class="fluxio-field fluxio-field--compact">
+              <span class="fluxio-field__label">{{ t('annotation.y') }}</span>
+              <span class="fluxio-field__control">
+                <input
+                  type="number"
+                  [value]="geo.y | number: '1.0-0'"
+                  (change)="updateSelectedGeometry({ y: +$any($event.target).value }); commitSelectedGeometry()"
+                />
+                <span class="fluxio-field__suffix" aria-hidden="true">px</span>
+              </span>
+            </label>
+            <label class="fluxio-field fluxio-field--compact">
+              <span class="fluxio-field__label">{{ t('annotation.width') }}</span>
+              <span class="fluxio-field__control">
+                <input
+                  type="number"
+                  min="8"
+                  [value]="geo.width | number: '1.0-0'"
+                  (change)="updateSelectedGeometry({ width: +$any($event.target).value }); commitSelectedGeometry()"
+                />
+                <span class="fluxio-field__suffix" aria-hidden="true">px</span>
+              </span>
+            </label>
+            <label class="fluxio-field fluxio-field--compact">
+              <span class="fluxio-field__label">{{ t('annotation.height') }}</span>
+              <span class="fluxio-field__control">
+                <input
+                  type="number"
+                  min="8"
+                  [value]="geo.height | number: '1.0-0'"
+                  (change)="updateSelectedGeometry({ height: +$any($event.target).value }); commitSelectedGeometry()"
+                />
+                <span class="fluxio-field__suffix" aria-hidden="true">px</span>
+              </span>
+            </label>
+          </div>
+        </section>
+      }
+      <fluxio-order-actions
+        [ariaLabel]="t('annotation.order')"
+        [bringToFrontLabel]="t('annotation.bringToFront')"
+        [bringForwardLabel]="t('annotation.bringForward')"
+        [sendBackwardLabel]="t('annotation.sendBackward')"
+        [sendToBackLabel]="t('annotation.sendToBack')"
+        [disabled]="!primarySelectedAnnotationId()"
+        [canFront]="canReorderSelectedAnnotation('front')"
+        [canForward]="canReorderSelectedAnnotation('forward')"
+        [canBackward]="canReorderSelectedAnnotation('backward')"
+        [canBack]="canReorderSelectedAnnotation('back')"
+        (reorder)="reorderSelectedAnnotation($event)"
+      />
+    }
+  </div>
+  <fluxio-object-inspector-actions
+    [showDelete]="false"
+    [doneLabel]="t('shapes.done')"
+    (done)="doneShapes()"
+  />
+</div>

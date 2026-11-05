@@ -1,0 +1,262 @@
+@if (presentation.exportOpen()) {
+  <div class="fluxio-image-editor__dialog-backdrop" (click)="exportCtrl.close()">
+    <div
+      class="fluxio-image-editor__dialog"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-label]="presentation.t('export.dialogTitle')"
+      (click)="$event.stopPropagation()"
+    >
+      <h2>{{ presentation.t('export.dialogTitle') }}</h2>
+      <p class="fluxio-image-editor__dialog-hint">{{ presentation.t('export.dialogHint') }}</p>
+      <label class="fluxio-field fluxio-field--stack">
+        <span class="fluxio-field__label">{{ presentation.t('export.format') }}</span>
+        <select
+          class="fluxio-select"
+          [value]="presentation.exportFormat()"
+          (change)="presentation.exportFormat.set($any($event.target).value)"
+        >
+          <option value="png">PNG</option>
+          <option value="jpeg">JPEG</option>
+          <option value="webp">WebP</option>
+        </select>
+      </label>
+      @if (presentation.exportFormat() === 'jpeg' || presentation.exportFormat() === 'webp') {
+        <label class="fluxio-slider fluxio-slider--dialog">
+          <span class="fluxio-slider__header">
+            <span class="fluxio-slider__name">{{ presentation.t('export.quality') }}</span>
+            <span class="fluxio-slider__value" aria-hidden="true">
+              {{ presentation.exportQuality() | number: '1.0-2' }}
+            </span>
+          </span>
+          <span class="fluxio-slider__control">
+            <input
+              type="range"
+              class="fluxio-range"
+              min="0.1"
+              max="1"
+              step="0.01"
+              [value]="presentation.exportQuality()"
+              [style.--fluxio-range-fill.%]="exportCtrl.qualityFillPercent()"
+              (input)="presentation.exportQuality.set(+$any($event.target).value)"
+              [attr.aria-label]="presentation.t('export.quality')"
+            />
+          </span>
+        </label>
+      }
+      <label class="fluxio-field fluxio-field--stack">
+        <span class="fluxio-field__label">{{ presentation.t('export.fileName') }}</span>
+        <input
+          type="text"
+          [value]="presentation.exportFileName()"
+          (input)="presentation.exportFileName.set($any($event.target).value)"
+        />
+      </label>
+      <div class="fluxio-image-editor__dialog-actions">
+        <button type="button" class="fluxio-btn fluxio-btn--quiet" (click)="exportCtrl.close()">
+          {{ presentation.t('export.cancel') }}
+        </button>
+        <button type="button" class="fluxio-btn fluxio-btn--primary" (click)="confirmExport()">
+          {{ presentation.t('export.confirm') }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (presentation.batchExportOpen()) {
+  <div class="fluxio-image-editor__dialog-backdrop" (click)="batchExport.close()">
+    <div
+      class="fluxio-image-editor__dialog fluxio-image-editor__dialog--batch"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-label]="presentation.t('batch-export.dialogTitle')"
+      (click)="$event.stopPropagation()"
+    >
+      <h2>{{ presentation.t('batch-export.dialogTitle') }}</h2>
+      <p class="fluxio-image-editor__dialog-hint">{{ presentation.t('batch-export.dialogHint') }}</p>
+      <div class="fluxio-batch-export__toolbar">
+        <button
+          type="button"
+          class="fluxio-btn fluxio-btn--quiet"
+          [disabled]="presentation.batchExportBusy()"
+          (click)="batchExport.selectAll()"
+        >
+          {{ presentation.t('batch-export.selectAll') }}
+        </button>
+        <button
+          type="button"
+          class="fluxio-btn fluxio-btn--quiet"
+          [disabled]="presentation.batchExportBusy()"
+          (click)="batchExport.selectNone()"
+        >
+          {{ presentation.t('batch-export.selectNone') }}
+        </button>
+      </div>
+      <fieldset class="fluxio-batch-export__presets" [disabled]="presentation.batchExportBusy()">
+        <legend>{{ presentation.t('batch-export.presets') }}</legend>
+        <div
+          class="fluxio-batch-export__list"
+          role="group"
+          [attr.aria-label]="presentation.t('batch-export.presets')"
+        >
+          @for (preset of presentation.batchExportPresets(); track preset.id) {
+            <label
+              class="fluxio-batch-export__item"
+              [class.fluxio-batch-export__item--active]="batchExport.isPresetExporting(preset.id)"
+              [class.fluxio-batch-export__item--done]="batchExport.isPresetExported(preset.id)"
+            >
+              <input
+                type="checkbox"
+                [checked]="presentation.batchExportSelectedIds().includes(preset.id)"
+                (change)="batchExport.togglePreset(preset.id)"
+              />
+              <span class="fluxio-batch-export__item-body">
+                <span class="fluxio-batch-export__item-label">{{ preset.label }}</span>
+                <span class="fluxio-batch-export__item-meta">
+                  {{ preset.format.toUpperCase() }}
+                  @if (preset.width && preset.height) {
+                    · {{ preset.width }}×{{ preset.height }}
+                  } @else {
+                    · {{ presentation.t('batch-export.sizeLabel') }}
+                  }
+                  @if (preset.ratio) {
+                    · {{ presentation.t('batch-export.aspectLabel') }}
+                  }
+                </span>
+              </span>
+            </label>
+          }
+        </div>
+      </fieldset>
+      <label class="fluxio-slider fluxio-slider--dialog">
+        <span class="fluxio-slider__header">
+          <span class="fluxio-slider__name">{{ presentation.t('batch-export.quality') }}</span>
+          <span class="fluxio-slider__value" aria-hidden="true">
+            {{ presentation.exportQuality() | number: '1.0-2' }}
+          </span>
+        </span>
+        <span class="fluxio-slider__control">
+          <input
+            type="range"
+            class="fluxio-range"
+            min="0.1"
+            max="1"
+            step="0.01"
+            [value]="presentation.exportQuality()"
+            [disabled]="presentation.batchExportBusy()"
+            [style.--fluxio-range-fill.%]="batchExport.qualityFillPercent()"
+            (input)="presentation.exportQuality.set(+$any($event.target).value)"
+            [attr.aria-label]="presentation.t('batch-export.quality')"
+          />
+        </span>
+      </label>
+      <label class="fluxio-field fluxio-field--stack">
+        <span class="fluxio-field__label">{{ presentation.t('batch-export.fileName') }}</span>
+        <input
+          type="text"
+          [value]="presentation.exportFileName()"
+          [disabled]="presentation.batchExportBusy()"
+          (input)="presentation.exportFileName.set($any($event.target).value)"
+        />
+      </label>
+      @if (presentation.batchExportBusy()) {
+        <div class="fluxio-batch-export__progress" role="status" aria-live="polite">
+          <span class="fluxio-spinner" aria-hidden="true"></span>
+          <div class="fluxio-batch-export__progress-copy">
+            @if (presentation.batchExportProgress(); as progress) {
+              <p class="fluxio-image-editor__dialog-hint">
+                {{ presentation.t('batch-export.busy') }}
+                {{ progress.index }}
+                {{ presentation.t('batch-export.progressOf') }}
+                {{ progress.total }}
+                — {{ progress.label }}
+              </p>
+              <div
+                class="fluxio-batch-export__progress-bar"
+                role="progressbar"
+                [attr.aria-valuemin]="0"
+                [attr.aria-valuemax]="progress.total"
+                [attr.aria-valuenow]="progress.index"
+                [style.--fluxio-range-fill.%]="batchExport.progressFillPercent()"
+              ></div>
+            } @else {
+              <p class="fluxio-image-editor__dialog-hint">{{ presentation.t('batch-export.busy') }}</p>
+            }
+          </div>
+        </div>
+      } @else if (presentation.batchExportSelectedIds().length === 0) {
+        <p class="fluxio-image-editor__dialog-hint" role="status">{{ presentation.t('batch-export.empty') }}</p>
+      }
+      <div class="fluxio-image-editor__dialog-actions">
+        <button
+          type="button"
+          class="fluxio-btn fluxio-btn--quiet"
+          [disabled]="presentation.batchExportBusy()"
+          (click)="batchExport.close()"
+        >
+          {{ presentation.t('batch-export.cancel') }}
+        </button>
+        <button
+          type="button"
+          class="fluxio-btn fluxio-btn--primary"
+          [disabled]="presentation.batchExportBusy() || presentation.batchExportSelectedIds().length === 0"
+          (click)="confirmBatchExport()"
+        >
+          {{ presentation.t('batch-export.confirm') }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (presentation.annotationActionsMenu(); as menu) {
+  <div
+    class="fluxio-annotation-actions-menu"
+    role="menu"
+    [attr.aria-label]="presentation.t('annotation.actionsMenu')"
+    [style.left.px]="menu.x"
+    [style.top.px]="menu.y"
+    (click)="$event.stopPropagation()"
+  >
+    <button
+      type="button"
+      role="menuitem"
+      [disabled]="!annotations.canReorder('front')"
+      (click)="annotations.runMenuAction('front', $event)"
+    >
+      {{ presentation.t('annotation.bringToFront') }}
+    </button>
+    <button
+      type="button"
+      role="menuitem"
+      [disabled]="!annotations.canReorder('forward')"
+      (click)="annotations.runMenuAction('forward', $event)"
+    >
+      {{ presentation.t('annotation.bringForward') }}
+    </button>
+    <button
+      type="button"
+      role="menuitem"
+      [disabled]="!annotations.canReorder('backward')"
+      (click)="annotations.runMenuAction('backward', $event)"
+    >
+      {{ presentation.t('annotation.sendBackward') }}
+    </button>
+    <button
+      type="button"
+      role="menuitem"
+      [disabled]="!annotations.canReorder('back')"
+      (click)="annotations.runMenuAction('back', $event)"
+    >
+      {{ presentation.t('annotation.sendToBack') }}
+    </button>
+    <div class="fluxio-annotation-actions-menu__sep" role="separator"></div>
+    <button type="button" role="menuitem" (click)="annotations.runMenuAction('duplicate', $event)">
+      {{ presentation.t('annotation.duplicate') }}
+    </button>
+    <button type="button" role="menuitem" (click)="annotations.runMenuAction('delete', $event)">
+      {{ presentation.t('annotation.delete') }}
+    </button>
+  </div>
+}

@@ -1,0 +1,50 @@
+<div
+  class="fluxio-image-editor__controls-group fluxio-image-editor__controls-group--adjustments"
+  role="group"
+  [attr.aria-label]="t('adjustments.tool')"
+>
+  <div class="fluxio-image-editor__controls-main fluxio-image-editor__controls-main--sliders">
+    <span class="fluxio-image-editor__controls-title">{{ t('adjustments.tool') }}</span>
+    @for (slider of adjustmentSliders; track slider.key) {
+      <label
+        class="fluxio-slider"
+        [class.fluxio-slider--active]="adjustmentUiValue(slider.key) !== 0"
+        [class.fluxio-slider--bipolar]="slider.min < 0"
+      >
+        <span class="fluxio-slider__header">
+          <span class="fluxio-slider__name">{{ t('adjustments.' + slider.key) }}</span>
+          <span class="fluxio-slider__value" aria-hidden="true">
+            {{ adjustmentUiValue(slider.key) }}
+          </span>
+        </span>
+        <span class="fluxio-slider__control">
+          @if (slider.min < 0) {
+            <span class="fluxio-slider__center" aria-hidden="true"></span>
+          }
+          <input
+            type="range"
+            class="fluxio-range"
+            [min]="slider.min"
+            [max]="slider.max"
+            step="1"
+            [value]="adjustmentUiValue(slider.key)"
+            [style.--fluxio-range-fill.%]="adjustmentSliderFillPercent(slider)"
+            (input)="onAdjustmentSliderInput(slider.key, +$any($event.target).value)"
+            [attr.aria-valuetext]="
+              t('adjustments.' + slider.key) + ' ' + adjustmentUiValue(slider.key)
+            "
+            [attr.aria-label]="t('adjustments.' + slider.key)"
+          />
+        </span>
+      </label>
+    }
+  </div>
+  <fluxio-preview-tool-actions
+    [resetLabel]="t('adjustments.reset')"
+    [cancelLabel]="t('adjustments.cancel')"
+    [applyLabel]="t('adjustments.apply')"
+    (reset)="resetDraftAdjustments()"
+    (cancel)="cancelAdjustments()"
+    (apply)="applyAdjustments()"
+  />
+</div>

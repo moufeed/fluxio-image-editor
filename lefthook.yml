@@ -1,0 +1,10 @@
+pre-commit:
+  commands:
+    lint-staged:
+      glob: "*.{js,ts,json,md,html,scss,css}"
+      run: npx lint-staged
+
+commit-msg:
+  commands:
+    commitlint:
+      run: npx commitlint --edit {1}

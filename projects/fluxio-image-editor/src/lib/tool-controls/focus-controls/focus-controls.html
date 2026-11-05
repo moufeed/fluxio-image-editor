@@ -1,0 +1,80 @@
+<div
+  class="fluxio-image-editor__controls-group fluxio-image-editor__controls-group--adjustments"
+  role="group"
+  [attr.aria-label]="t('focus.tool')"
+>
+  <div class="fluxio-image-editor__controls-main fluxio-image-editor__controls-main--sliders">
+    <span class="fluxio-image-editor__controls-title">{{ t('focus.tool') }}</span>
+
+    <div
+      class="fluxio-segmented fluxio-segmented--presets fluxio-focus-modes"
+      role="radiogroup"
+      [attr.aria-label]="t('focus.mode')"
+    >
+      @for (mode of modeChoices; track mode) {
+        <button
+          type="button"
+          class="fluxio-btn fluxio-btn--icon fluxio-focus-mode-btn"
+          role="radio"
+          [class.fluxio-btn--active]="focusModeValue() === mode"
+          [attr.aria-checked]="focusModeValue() === mode"
+          [attr.aria-label]="t('focus.' + mode)"
+          [attr.title]="t('focus.' + mode)"
+          (click)="onModeChange(mode)"
+        >
+          <svg
+            class="fluxio-btn__icon"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <path
+              [attr.d]="modeIconPaths[mode]"
+              fill="currentColor"
+              fill-rule="evenodd"
+            />
+          </svg>
+          <span class="fluxio-focus-mode-btn__label">{{ t('focus.' + mode) }}</span>
+        </button>
+      }
+    </div>
+
+    @for (slider of visibleFocusSliders(); track slider.key) {
+      <label
+        class="fluxio-slider"
+        [class.fluxio-slider--active]="focusUiValue(slider.key) !== 0"
+      >
+        <span class="fluxio-slider__header">
+          <span class="fluxio-slider__name">{{ t('focus.' + slider.key) }}</span>
+          <span class="fluxio-slider__value" aria-hidden="true">
+            {{ focusUiValue(slider.key) }}
+          </span>
+        </span>
+        <span class="fluxio-slider__control">
+          <input
+            type="range"
+            class="fluxio-range"
+            [min]="slider.min"
+            [max]="slider.max"
+            step="1"
+            [value]="focusUiValue(slider.key)"
+            [style.--fluxio-range-fill.%]="focusSliderFillPercent(slider)"
+            (input)="onFocusSliderInput(slider.key, +$any($event.target).value)"
+            [attr.aria-valuetext]="
+              t('focus.' + slider.key) + ' ' + focusUiValue(slider.key)
+            "
+            [attr.aria-label]="t('focus.' + slider.key)"
+          />
+        </span>
+      </label>
+    }
+  </div>
+  <fluxio-preview-tool-actions
+    [resetLabel]="t('focus.reset')"
+    [cancelLabel]="t('focus.cancel')"
+    [applyLabel]="t('focus.apply')"
+    (reset)="resetFocus()"
+    (cancel)="cancelFocus()"
+    (apply)="applyFocus()"
+  />
+</div>

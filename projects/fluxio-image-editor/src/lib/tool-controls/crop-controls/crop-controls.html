@@ -1,0 +1,80 @@
+<div
+  class="fluxio-image-editor__controls-group fluxio-image-editor__controls-group--adjustments fluxio-crop-controls"
+  role="group"
+  [attr.aria-label]="t('crop.tool')"
+  [attr.data-minimize]="cropMinimizeToolbar()"
+>
+  <div class="fluxio-image-editor__controls-main fluxio-image-editor__controls-main--sliders">
+    <span class="fluxio-image-editor__controls-title">{{ t('crop.tool') }}</span>
+    <div
+      class="fluxio-segmented fluxio-segmented--presets fluxio-crop-aspects"
+      role="group"
+      [attr.aria-label]="t('crop.aspect')"
+    >
+      @for (preset of aspectRatios(); track preset.id) {
+        <button
+          type="button"
+          class="fluxio-btn fluxio-btn--icon fluxio-crop-aspect-btn"
+          [class.fluxio-btn--active]="cropAspectId() === preset.id"
+          [attr.aria-pressed]="cropAspectId() === preset.id"
+          [attr.aria-label]="aspectLabel(preset)"
+          [attr.title]="aspectLabel(preset)"
+          (click)="onCropAspectChange(preset.id)"
+        >
+          <svg
+            class="fluxio-btn__icon"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <path
+              [attr.d]="aspectIconPath(preset)"
+              fill="currentColor"
+              fill-rule="evenodd"
+            />
+          </svg>
+          <span class="fluxio-crop-aspect-btn__label">{{ aspectLabel(preset) }}</span>
+        </button>
+      }
+    </div>
+
+    <section class="fluxio-control-section fluxio-crop-guides">
+      <header class="fluxio-control-section__header">
+        <span class="fluxio-control-section__title">{{ t('crop.guides') }}</span>
+      </header>
+      <div class="fluxio-control-section__body">
+        <div
+          class="fluxio-segmented fluxio-segmented--presets fluxio-crop-guide-toggles"
+          role="group"
+          [attr.aria-label]="t('crop.guides')"
+        >
+          <button
+            type="button"
+            class="fluxio-btn"
+            [class.fluxio-btn--active]="cropGuideCircle()"
+            [attr.aria-pressed]="cropGuideCircle()"
+            (click)="onGuideCircleToggle()"
+          >
+            {{ t('crop.guide.circle') }}
+          </button>
+          <button
+            type="button"
+            class="fluxio-btn"
+            [class.fluxio-btn--active]="cropGuideBleed()"
+            [attr.aria-pressed]="cropGuideBleed()"
+            (click)="onGuideBleedToggle()"
+          >
+            {{ t('crop.guide.bleed') }}
+          </button>
+        </div>
+      </div>
+    </section>
+  </div>
+  <fluxio-preview-tool-actions
+    [showReset]="false"
+    [cancelLabel]="t('crop.cancel')"
+    [applyLabel]="t('crop.apply')"
+    (cancel)="cancelCrop()"
+    (apply)="applyCrop()"
+  />
+</div>

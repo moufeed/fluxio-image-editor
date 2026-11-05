@@ -1,0 +1,109 @@
+<!--
+  @defer (when) only *loads* once; it does not tear down when the condition flips.
+  Keep an @if inside each block so only the active tool’s controls stay in the DOM.
+-->
+@defer (when presentation.cropMode()) {
+  @if (presentation.cropMode()) {
+    <fluxio-crop-controls />
+  }
+}
+@defer (when (presentation.rotateMode() || presentation.resizeMode()) && presentation.readyState()) {
+  @if ((presentation.rotateMode() || presentation.resizeMode()) && presentation.readyState()) {
+    <fluxio-transform-controls />
+  }
+}
+@defer (when presentation.adjustmentsMode() && presentation.readyState()) {
+  @if (presentation.adjustmentsMode() && presentation.readyState()) {
+    <fluxio-adjustments-controls />
+  }
+}
+@defer (when presentation.effectsMode() && presentation.readyState()) {
+  @if (presentation.effectsMode() && presentation.readyState()) {
+    <fluxio-effects-controls />
+  }
+}
+@defer (when presentation.filtersMode() && presentation.readyState()) {
+  @if (presentation.filtersMode() && presentation.readyState()) {
+    <fluxio-filters-controls />
+  }
+}
+@defer (when presentation.focusMode() && presentation.readyState()) {
+  @if (presentation.focusMode() && presentation.readyState()) {
+    <fluxio-focus-controls />
+  }
+}
+@defer (when presentation.redactMode() && presentation.readyState()) {
+  @if (presentation.redactMode() && presentation.readyState()) {
+    <fluxio-redact-controls />
+  }
+}
+@defer (when presentation.cropMaskMode() && presentation.readyState()) {
+  @if (presentation.cropMaskMode() && presentation.readyState()) {
+    <fluxio-crop-mask-controls />
+  }
+}
+@defer (when presentation.colorOverlayMode() && presentation.readyState()) {
+  @if (presentation.colorOverlayMode() && presentation.readyState()) {
+    <fluxio-color-overlay-controls />
+  }
+}
+@defer (when presentation.fillMode() && presentation.readyState()) {
+  @if (presentation.fillMode() && presentation.readyState()) {
+    <fluxio-fill-controls />
+  }
+}
+@defer (when presentation.frameMode() && presentation.readyState()) {
+  @if (presentation.frameMode() && presentation.readyState()) {
+    <fluxio-frame-controls />
+  }
+}
+@defer (when presentation.textMode() && presentation.readyState()) {
+  @if (presentation.textMode() && presentation.readyState()) {
+    <fluxio-text-controls />
+  }
+}
+@defer (when presentation.emojiMode() && presentation.readyState()) {
+  @if (presentation.emojiMode() && presentation.readyState()) {
+    <fluxio-emoji-controls />
+  }
+}
+@defer (when presentation.shapesMode() && presentation.readyState()) {
+  @if (presentation.shapesMode() && presentation.readyState()) {
+    <fluxio-shapes-controls />
+  }
+}
+@defer (when presentation.drawingMode() && presentation.readyState()) {
+  @if (presentation.drawingMode() && presentation.readyState()) {
+    <fluxio-drawing-controls />
+  }
+}
+@defer (when presentation.pathMode() && presentation.readyState()) {
+  @if (presentation.pathMode() && presentation.readyState()) {
+    <fluxio-path-controls />
+  }
+}
+@defer (when presentation.imageOverlayMode() && presentation.readyState()) {
+  @if (presentation.imageOverlayMode() && presentation.readyState()) {
+    <fluxio-image-overlay-controls variant="overlay" />
+  }
+}
+@defer (when presentation.stickersMode() && presentation.readyState()) {
+  @if (presentation.stickersMode() && presentation.readyState()) {
+    <fluxio-image-overlay-controls variant="stickers" />
+  }
+}
+@defer (when presentation.templatesMode() && presentation.readyState()) {
+  @if (presentation.templatesMode() && presentation.readyState()) {
+    <fluxio-templates-controls />
+  }
+}
+@defer (when presentation.watermarkMode() && presentation.readyState()) {
+  @if (presentation.watermarkMode() && presentation.readyState()) {
+    <fluxio-watermark-controls />
+  }
+}
+@defer (when presentation.rulersMode() && presentation.readyState()) {
+  @if (presentation.rulersMode() && presentation.readyState()) {
+    <fluxio-rulers-controls />
+  }
+}
