@@ -1,10 +1,15 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
 
-import { DOCS_PAGES, getDocsPage, type DocsApiSection, type DocsPage } from '../catalog/docs-content';
+import {
+  DOCS_PAGES,
+  getDocsPage,
+  type DocsApiSection,
+  type DocsPage,
+} from '../catalog/docs-content';
 import { DocsCodeBlockComponent } from '../shared/code-block';
 import { DocsLiveEditorComponent } from '../shared/live-editor';
 
@@ -20,13 +25,24 @@ export class DocPageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly sanitizer = inject(DomSanitizer);
 
-  private readonly slug = toSignal(this.route.paramMap.pipe(map((p) => p.get('slug') ?? 'getting-started')), {
-    initialValue: 'getting-started',
-  });
+  private readonly slug = toSignal(
+    this.route.paramMap.pipe(map((p) => p.get('slug') ?? 'getting-started')),
+    {
+      initialValue: 'getting-started',
+    },
+  );
 
   protected readonly tab = signal<DocsTab>('preview');
 
   protected readonly page = computed(() => getDocsPage(this.slug()));
+
+  constructor() {
+    // Same DocPageComponent instance is reused across /docs/:slug — reset chrome on navigate.
+    effect(() => {
+      this.slug();
+      this.tab.set('preview');
+    });
+  }
 
   protected readonly toc = computed(() => {
     const page = this.page();
@@ -39,9 +55,7 @@ export class DocPageComponent {
   });
 
   protected readonly relatedPages = computed(() =>
-    (this.page().related ?? [])
-      .map((id) => DOCS_PAGES[id])
-      .filter((p): p is DocsPage => !!p),
+    (this.page().related ?? []).map((id) => DOCS_PAGES[id]).filter((p): p is DocsPage => !!p),
   );
 
   protected readonly homeCards = computed(() => {
@@ -63,7 +77,9 @@ export class DocPageComponent {
   protected setTab(tab: DocsTab, sectionId?: string): void {
     this.tab.set(tab);
     if (tab === 'api' && sectionId && sectionId !== 'api') {
-      queueMicrotask(() => document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+      queueMicrotask(() =>
+        document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+      );
     }
   }
 

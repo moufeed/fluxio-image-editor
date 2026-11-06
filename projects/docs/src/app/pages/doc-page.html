@@ -17,7 +17,9 @@
         @if (page.badges?.length) {
           <div class="docs-badges">
             @for (badge of page.badges; track badge.label) {
-              <span class="docs-badge" [class.docs-badge--accent]="badge.accent">{{ badge.label }}</span>
+              <span class="docs-badge" [class.docs-badge--accent]="badge.accent">{{
+                badge.label
+              }}</span>
             }
           </div>
         }
@@ -59,8 +61,9 @@
             @if (page.id === 'getting-started') {
               <div class="docs-prose">
                 <p>
-                  fluxio-image-editor is a Fabric-backed Angular image editor with lazy-loadable plugins, RTL locales,
-                  and a typed document model. The live instance below loads the sample fixture with a starter config.
+                  fluxio-image-editor is a Fabric-backed Angular image editor with lazy-loadable
+                  plugins, RTL locales, and a typed document model. The live instance below loads
+                  the sample fixture with a starter config.
                 </p>
               </div>
               <div class="docs-home-grid">
@@ -72,20 +75,28 @@
                 }
               </div>
             }
-            <docs-live-editor [live]="page.live" [hint]="previewHint(page)" />
+            @for (p of [page]; track p.id) {
+              <docs-live-editor [live]="p.live" [hint]="previewHint(p)" />
+            }
           </div>
         }
 
         @if (tab() === 'code') {
           <div class="docs-panel" role="tabpanel">
             <div class="docs-prose">
-              <p>Complete source used for the <strong>{{ page.title }}</strong> examples.</p>
+              <p>
+                Complete source used for the <strong>{{ page.title }}</strong> examples.
+              </p>
             </div>
             @for (block of page.code; track $index) {
               @if (block.note) {
                 <p class="docs-status">{{ block.note }}</p>
               } @else if (block.code) {
-                <docs-code-block [code]="block.code" [lang]="block.lang || 'ts'" [label]="block.label || ''" />
+                <docs-code-block
+                  [code]="block.code"
+                  [lang]="block.lang || 'ts'"
+                  [label]="block.label || ''"
+                />
               }
             }
           </div>
@@ -107,7 +118,11 @@
                   </ul>
                 }
                 @if (section.callout) {
-                  <div class="docs-callout" [class.docs-callout--tip]="section.callout.tone !== 'warn'" [class.docs-callout--warn]="section.callout.tone === 'warn'">
+                  <div
+                    class="docs-callout"
+                    [class.docs-callout--tip]="section.callout.tone !== 'warn'"
+                    [class.docs-callout--warn]="section.callout.tone === 'warn'"
+                  >
                     <span class="docs-callout__title">{{ section.callout.title }}</span>
                     <div [innerHTML]="trustHtml(section.callout.body)"></div>
                   </div>
