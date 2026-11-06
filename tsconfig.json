@@ -100,6 +100,9 @@
       "fluxio-image-editor/plugins/fill": [
         "./projects/fluxio-image-editor/plugins/fill/src/public-api.ts"
       ],
+      "fluxio-image-editor/plugins/open": [
+        "./projects/fluxio-image-editor/plugins/open/src/public-api.ts"
+      ],
       "fluxio-image-editor/testing": ["./projects/fluxio-image-editor/testing/src/public-api.ts"]
     },
     "noFallthroughCasesInSwitch": true,

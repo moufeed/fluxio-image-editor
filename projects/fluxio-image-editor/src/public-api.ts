@@ -21,6 +21,8 @@ export type {
   EditorToolbarActionDisplay,
   EditorToolbarActionConfig,
   EditorActionSurface,
+  OpenPluginConfig,
+  OpenBlankPreset,
   EditorPluginId,
   EditorPluginRequestId,
   AnnotationEditorPluginId,

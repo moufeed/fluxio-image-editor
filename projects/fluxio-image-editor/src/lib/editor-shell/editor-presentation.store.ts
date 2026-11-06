@@ -147,6 +147,7 @@ export class EditorPresentationStore {
   readonly resizePresetId = this.ui.resizePresetId;
   readonly zoomMenuOpen = this.ui.zoomMenuOpen;
   readonly exportMenuOpen = this.ui.exportMenuOpen;
+  readonly blankMenuOpen = this.ui.blankMenuOpen;
 
   readonly watermarkPositions: readonly WatermarkPosition[] = [
     'center',
