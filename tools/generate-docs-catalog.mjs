@@ -87,6 +87,7 @@ const LIVE = {
   layers: { plugins: ['layers', 'annotations'], defaultTool: 'text', theme: 'dark' },
   'color-picker': { plugins: ['color-picker', 'text', 'frame'], defaultTool: 'text', theme: 'dark' },
   'batch-export': { plugins: ['batch-export'], defaultTool: undefined, theme: 'dark' },
+  open: { plugins: ['open'], defaultTool: undefined, theme: 'dark' },
 };
 
 for (const [id, page] of Object.entries(DOCS_PAGES)) {

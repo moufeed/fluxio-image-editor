@@ -26,6 +26,8 @@ export const DEFAULT_TOOLBAR_SURFACE_ACTION_IDS: ReadonlySet<string> = new Set([
   'compare.original',
   'history.panel',
   'layers.panel',
+  'open.file',
+  'open.new',
 ]);
 
 /**

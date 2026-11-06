@@ -96,6 +96,11 @@ export class BootstrapController {
     void session.load(source).catch((error) => this.shell.reportError(error));
   }
 
+  /** Sync host `[source]` after an in-shell Open/New load to avoid a double `session.load`. */
+  rememberSource(source: ReturnType<EditorShellContext['source']>): void {
+    this.lastSource = source;
+  }
+
   applyLocaleConfig(
     locale: ImageEditorConfig['locale'],
     messages: ImageEditorConfig['messages'],

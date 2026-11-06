@@ -13,10 +13,10 @@ export interface EditorClosedEvent {
 }
 
 /**
- * Emitted when the user tries to close with unsaved changes and
- * `config.close.useCustomConfirm` is true. The host should present a
- * confirmation dialog and call `resolve(true)` to confirm or
- * `resolve(false)` to cancel.
+ * Emitted when the user tries to close **or** replace the source (Open/New)
+ * with unsaved changes and `config.close.useCustomConfirm` is true.
+ * The host should present a confirmation dialog and call `resolve(true)` to
+ * discard and proceed, or `resolve(false)` to cancel.
  */
 export interface ConfirmCloseEvent {
   readonly dirty: boolean;

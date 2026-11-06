@@ -33,7 +33,11 @@
         <ul class="fluxio-image-editor__zoom-menu" role="menu" (click)="$event.stopPropagation()">
           @for (preset of presentation.zoomPresets(); track preset.id) {
             <li role="none">
-              <button type="button" role="menuitem" (click)="toolbar.applyZoomPreset(preset, $event)">
+              <button
+                type="button"
+                role="menuitem"
+                (click)="toolbar.applyZoomPreset(preset, $event)"
+              >
                 {{ toolbar.zoomPresetLabel(preset) }}
               </button>
             </li>
@@ -52,11 +56,25 @@
     </button>
   </div>
 
-  <div class="fluxio-image-editor__toolbar-group" role="group" [attr.aria-label]="presentation.t('toolbar.history')">
-    <button type="button" class="fluxio-btn" (click)="toolbar.onUndo()" [disabled]="!presentation.canUndoState()">
+  <div
+    class="fluxio-image-editor__toolbar-group"
+    role="group"
+    [attr.aria-label]="presentation.t('toolbar.history')"
+  >
+    <button
+      type="button"
+      class="fluxio-btn"
+      (click)="toolbar.onUndo()"
+      [disabled]="!presentation.canUndoState()"
+    >
       {{ presentation.t('toolbar.undo') }}
     </button>
-    <button type="button" class="fluxio-btn" (click)="toolbar.onRedo()" [disabled]="!presentation.canRedoState()">
+    <button
+      type="button"
+      class="fluxio-btn"
+      (click)="toolbar.onRedo()"
+      [disabled]="!presentation.canRedoState()"
+    >
       {{ presentation.t('toolbar.redo') }}
     </button>
     <button
@@ -71,7 +89,9 @@
       <button
         type="button"
         class="fluxio-btn fluxio-btn--quiet"
-        [class.fluxio-btn--active]="presentation.compareLatched() || presentation.comparingOriginal()"
+        [class.fluxio-btn--active]="
+          presentation.compareLatched() || presentation.comparingOriginal()
+        "
         [disabled]="!presentation.readyState()"
         [attr.aria-pressed]="presentation.compareLatched()"
         [attr.aria-label]="presentation.t('toolbar.compare')"
@@ -90,31 +110,86 @@
       </button>
     }
     @for (action of toolbar.toolbarPluginActions(); track action.id) {
-      <button
-        type="button"
-        class="fluxio-btn fluxio-btn--quiet"
-        [class.fluxio-btn--active]="action.active"
-        [disabled]="!presentation.readyState()"
-        [attr.aria-pressed]="action.active"
-        [attr.aria-label]="action.label"
-        [attr.title]="action.label"
-        (click)="toolbar.onToolbarAction(action.id)"
-      >
-        @if (action.showIcon && action.iconPath; as pluginIcon) {
-          <svg class="fluxio-btn__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path [attr.d]="pluginIcon" fill="currentColor" />
-          </svg>
-        }
-        @if (action.showLabel) {
-          <span class="fluxio-btn__label">{{ action.label }}</span>
-        }
-      </button>
+      @if (action.id === 'open.new' && toolbar.usesBlankMenu()) {
+        <div class="fluxio-image-editor__export fluxio-image-editor__open-blank">
+          <button
+            type="button"
+            class="fluxio-btn fluxio-btn--quiet"
+            [class.fluxio-btn--active]="action.active"
+            [disabled]="!presentation.readyState()"
+            [attr.aria-pressed]="action.active"
+            [attr.aria-expanded]="presentation.blankMenuOpen()"
+            aria-haspopup="menu"
+            [attr.aria-label]="action.label"
+            [attr.title]="action.label"
+            (click)="toolbar.onToolbarAction(action.id); $event.stopPropagation()"
+          >
+            @if (action.showIcon && action.iconPath; as pluginIcon) {
+              <svg
+                class="fluxio-btn__icon"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path [attr.d]="pluginIcon" fill="currentColor" />
+              </svg>
+            }
+            @if (action.showLabel) {
+              <span class="fluxio-btn__label">{{ action.label }}</span>
+            }
+            <span class="fluxio-image-editor__export-caret" aria-hidden="true">▾</span>
+          </button>
+          @if (presentation.blankMenuOpen()) {
+            <ul
+              class="fluxio-image-editor__export-menu"
+              role="menu"
+              [attr.aria-label]="presentation.t('open.blankMenu')"
+              (click)="$event.stopPropagation()"
+            >
+              @for (preset of toolbar.blankPresets(); track preset.id) {
+                <li role="none">
+                  <button
+                    type="button"
+                    role="menuitem"
+                    (click)="toolbar.chooseBlankPreset(preset, $event)"
+                  >
+                    {{ preset.label }}
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+      } @else {
+        <button
+          type="button"
+          class="fluxio-btn fluxio-btn--quiet"
+          [class.fluxio-btn--active]="action.active"
+          [disabled]="!presentation.readyState()"
+          [attr.aria-pressed]="action.active"
+          [attr.aria-label]="action.label"
+          [attr.title]="action.label"
+          (click)="toolbar.onToolbarAction(action.id)"
+        >
+          @if (action.showIcon && action.iconPath; as pluginIcon) {
+            <svg class="fluxio-btn__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path [attr.d]="pluginIcon" fill="currentColor" />
+            </svg>
+          }
+          @if (action.showLabel) {
+            <span class="fluxio-btn__label">{{ action.label }}</span>
+          }
+        </button>
+      }
     }
   </div>
 
   <div class="fluxio-image-editor__toolbar-spacer" aria-hidden="true"></div>
 
-  <div class="fluxio-image-editor__toolbar-group fluxio-image-editor__toolbar-group--end" role="group">
+  <div
+    class="fluxio-image-editor__toolbar-group fluxio-image-editor__toolbar-group--end"
+    role="group"
+  >
     @if (presentation.showSave()) {
       <div class="fluxio-image-editor__export">
         <button
@@ -130,7 +205,11 @@
           <span class="fluxio-image-editor__export-caret" aria-hidden="true">▾</span>
         </button>
         @if (presentation.exportMenuOpen()) {
-          <ul class="fluxio-image-editor__export-menu" role="menu" (click)="$event.stopPropagation()">
+          <ul
+            class="fluxio-image-editor__export-menu"
+            role="menu"
+            (click)="$event.stopPropagation()"
+          >
             <li role="none">
               <button
                 type="button"

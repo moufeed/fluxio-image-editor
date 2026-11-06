@@ -217,6 +217,8 @@ export class EditorUiStore {
   readonly resizePresetId = signal<string | null>(null);
   readonly zoomMenuOpen = signal(false);
   readonly exportMenuOpen = signal(false);
+  /** Open plugin “New blank” size menu. */
+  readonly blankMenuOpen = signal(false);
 
   readonly activeControlTool = computed<EditorControlTool | null>(() => {
     if (this.cropMode()) {

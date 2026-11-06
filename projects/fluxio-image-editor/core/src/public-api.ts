@@ -30,6 +30,7 @@ export * from './geometry/watermark-transform';
 export * from './geometry/design-image-transform';
 export * from './geometry/frame-transform';
 export * from './assets/exif-orientation';
+export * from './assets/blank-image';
 export * from './i18n/locale-catalog';
 export * from './ports/rendering-engine.port';
 export * from './commands/command';

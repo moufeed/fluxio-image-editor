@@ -392,8 +392,8 @@
               Catalog lists every first-party editor feature. Always-on plugins load with the shell;
               optional plugins load by default unless you opt into lazy loading and uncheck them.
               The demo registers a host <code>Save PNG</code> toolbar action via
-              <code>provideImageEditorPlugins(HostSavePlugin)</code> in
-              <code>app.config</code> + <code>(action)</code> (format chosen by the host).
+              <code>provideImageEditorPlugins(HostSavePlugin)</code> in <code>app.config</code> +
+              <code>(action)</code> (format chosen by the host).
             </p>
 
             <div class="demo__plugin-catalog">
@@ -736,6 +736,7 @@
             (changed)="onChanged()"
             (saved)="onSaved($event)"
             (action)="onAction($event)"
+            (sourceChanged)="onSourceChanged($event)"
             (confirmClose)="onConfirmClose($event)"
             (closed)="onClosed($event)"
             (error)="onError($event)"
