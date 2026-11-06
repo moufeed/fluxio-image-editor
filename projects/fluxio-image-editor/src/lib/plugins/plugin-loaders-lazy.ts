@@ -34,7 +34,8 @@ const OPTIONAL_PLUGIN_LOADERS: Record<string, OptionalPluginLoader> = {
     return new Plugin(config.cropMask);
   },
   'color-overlay': async () => {
-    const { ColorOverlayPlugin: Plugin } = await import('fluxio-image-editor/plugins/color-overlay');
+    const { ColorOverlayPlugin: Plugin } =
+      await import('fluxio-image-editor/plugins/color-overlay');
     return new Plugin();
   },
   fill: async (config) => {
@@ -62,7 +63,8 @@ const OPTIONAL_PLUGIN_LOADERS: Record<string, OptionalPluginLoader> = {
     return new Plugin();
   },
   'image-overlay': async (config) => {
-    const { ImageOverlayPlugin: Plugin } = await import('fluxio-image-editor/plugins/image-overlay');
+    const { ImageOverlayPlugin: Plugin } =
+      await import('fluxio-image-editor/plugins/image-overlay');
     return new Plugin(config.imageOverlay);
   },
   stickers: async (config) => {
@@ -86,9 +88,8 @@ const OPTIONAL_PLUGIN_LOADERS: Record<string, OptionalPluginLoader> = {
     return new Plugin();
   },
   'history-snapshots': async () => {
-    const { HistorySnapshotsPlugin: Plugin } = await import(
-      'fluxio-image-editor/plugins/history-snapshots'
-    );
+    const { HistorySnapshotsPlugin: Plugin } =
+      await import('fluxio-image-editor/plugins/history-snapshots');
     return new Plugin();
   },
   layers: async () => {
@@ -111,6 +112,10 @@ const OPTIONAL_PLUGIN_LOADERS: Record<string, OptionalPluginLoader> = {
     const { RulersPlugin: Plugin } = await import('fluxio-image-editor/plugins/rulers');
     return new Plugin(config.rulers);
   },
+  open: async (config) => {
+    const { OpenPlugin: Plugin } = await import('fluxio-image-editor/plugins/open');
+    return new Plugin(config.open);
+  },
 };
 
 /** Lazy path — loaded only via dynamic import from the shell when `config.plugins` is set. */
@@ -120,9 +125,7 @@ export async function resolveLazyPlugins(
 ): Promise<ImageEditorPlugin[]> {
   const alwaysOn = createAlwaysOnPlugins(config, incrementDegrees);
   const requestedIds = resolveRequestedPluginIds(config);
-  const optionalIds = requestedIds.filter(
-    (id) => !ALWAYS_ON_EDITOR_PLUGIN_IDS.includes(id),
-  );
+  const optionalIds = requestedIds.filter((id) => !ALWAYS_ON_EDITOR_PLUGIN_IDS.includes(id));
   const optionalPlugins = await Promise.all(
     optionalIds.map(async (id) => {
       const loader = OPTIONAL_PLUGIN_LOADERS[id];

@@ -25,6 +25,7 @@ import { ColorPickerPlugin } from 'fluxio-image-editor/plugins/color-picker';
 import { BatchExportPlugin } from 'fluxio-image-editor/plugins/batch-export';
 import { RulersPlugin } from 'fluxio-image-editor/plugins/rulers';
 import { FillPlugin } from 'fluxio-image-editor/plugins/fill';
+import { OpenPlugin } from 'fluxio-image-editor/plugins/open';
 /** Synchronous default path — keeps backward-compatible eager bundling. */
 export function createAllPluginsStatic(
   config: ImageEditorConfig,
@@ -57,5 +58,6 @@ export function createAllPluginsStatic(
     new ColorPickerPlugin(config.colorPicker),
     new BatchExportPlugin(config.batchExport),
     new RulersPlugin(config.rulers),
+    new OpenPlugin(config.open),
   ];
 }

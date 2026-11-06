@@ -54,8 +54,7 @@ const PLUGIN_SUMMARIES: Record<EditorPluginId, { label: string; summary: string 
   },
   'crop-mask': {
     label: 'Crop mask',
-    summary:
-      'Clip output to shapes (circle, star, heart, …) plus optional host SVG gallery (CM03)',
+    summary: 'Clip output to shapes (circle, star, heart, …) plus optional host SVG gallery (CM03)',
   },
   'color-overlay': {
     label: 'Fill (overlay)',
@@ -113,6 +112,10 @@ const PLUGIN_SUMMARIES: Record<EditorPluginId, { label: string; summary: string 
     label: 'Rulers',
     summary: 'Snap grid, edge rulers, and guide lines for annotation layout (PV49)',
   },
+  open: {
+    label: 'Open',
+    summary: 'Toolbar Upload + New blank (synthetic PNG) with dirty confirm',
+  },
 };
 
 export const DEMO_PLUGIN_ALIAS_PRESETS: readonly DemoPluginAliasPreset[] = [
@@ -150,7 +153,13 @@ export const DEMO_CHROME_ACTION_OPTIONS = [
     label: 'Layers panel',
     hint: 'Toolbar button only — use Layers plugin switch to unload the panel',
   },
-  { id: 'batch-export.dialog', label: 'Batch export', hint: 'Multi-format / multi-size export dialog' },
+  {
+    id: 'batch-export.dialog',
+    label: 'Batch export',
+    hint: 'Multi-format / multi-size export dialog',
+  },
+  { id: 'open.file', label: 'Open file', hint: 'Toolbar Upload — replace source from device' },
+  { id: 'open.new', label: 'New blank', hint: 'Toolbar New — blank size menu / default blank' },
 ] as const;
 
 /** Utilibar tool actions (+ annotations group alias). */

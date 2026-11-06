@@ -102,11 +102,17 @@ export class FluxioImageEditor {
   readonly batchSaved = output<readonly ImageEditorExportResult[]>();
   readonly closed = output<EditorClosedEvent>();
   /**
-   * Emitted when closing with unsaved changes and `config.close.useCustomConfirm`
-   * is true. Host must call `event.resolve(confirmed)`. When the flag is unset,
-   * falls back to `globalThis.confirm`.
+   * Emitted when closing or replacing the source (Open/New) with unsaved changes
+   * and `config.close.useCustomConfirm` is true. Host must call
+   * `event.resolve(confirmed)`. When the flag is unset, falls back to
+   * `globalThis.confirm`.
    */
   readonly confirmClose = output<ConfirmCloseEvent>();
+  /**
+   * Emitted after a successful Open/New load so the host can sync `[source]`
+   * without a double reload (`BootstrapController.rememberSource`).
+   */
+  readonly sourceChanged = output<ImageEditorSource>();
   /**
    * Emitted for registered plugin toolbar/utilibar actions the shell does not
    * handle. Use with a host plugin `registerToolbarAction` (e.g. one-click Save).
@@ -142,6 +148,8 @@ export class FluxioImageEditor {
     this.shell.translate = (key) => this.presentation.t(key);
     this.shell.reportError = (error) => this.emitError(error);
     this.shell.emitAction = (event) => this.action.emit(event);
+    this.shell.emitConfirmClose = (event) => this.confirmClose.emit(event);
+    this.shell.emitSourceChanged = (source) => this.sourceChanged.emit(source);
     this.lifecycle.bind();
 
     afterNextRender(() => {

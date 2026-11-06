@@ -526,6 +526,43 @@ export interface FillPluginConfig {
   readonly gallery?: readonly ImageOverlayGalleryItem[];
 }
 
+/** One size/fill choice for the Open plugin “New blank” menu. */
+export interface OpenBlankPreset {
+  readonly id: string;
+  readonly label: string;
+  readonly width: number;
+  readonly height: number;
+  /** CSS color; default `#ffffff`. Use `transparent` for an alpha PNG. */
+  readonly fill?: string;
+}
+
+/**
+ * Host options for the optional Open plugin (toolbar Upload + New blank).
+ * Blank documents are synthetic PNG rasters loaded via `session.load` — not a null source.
+ */
+export interface OpenPluginConfig {
+  /** Register the Upload (`open.file`) toolbar action. Default: true. */
+  readonly allowUpload?: boolean;
+  /** Register the New blank (`open.new`) toolbar action. Default: true. */
+  readonly allowBlank?: boolean;
+  /**
+   * Confirm before replacing the current document when dirty.
+   * Also respects `close.warnOnUnsaved`. Default: true.
+   */
+  readonly confirmReplace?: boolean;
+  /** Used for one-shot New when presets are empty / single. */
+  readonly defaultBlank?: {
+    readonly width: number;
+    readonly height: number;
+    readonly fill?: string;
+  };
+  /**
+   * Blank size menu entries. Omit for built-in square / HD / story presets.
+   * Pass `[]` to skip the menu and use `defaultBlank` immediately.
+   */
+  readonly blankPresets?: readonly OpenBlankPreset[];
+}
+
 /**
  * First-party plugin ids as a const object (enum-style) for host apps.
  * Prefer this over string literals: `EDITOR_PLUGIN_IDS.crop`, `EDITOR_PLUGIN_IDS.cropMask`.
@@ -560,6 +597,7 @@ export const EDITOR_PLUGIN_IDS = {
   colorPicker: 'color-picker',
   batchExport: 'batch-export',
   rulers: 'rulers',
+  open: 'open',
 } as const;
 
 /** First-party plugin identifiers (secondary entry points under `plugins/*`). */
@@ -567,8 +605,9 @@ export type EditorPluginId = (typeof EDITOR_PLUGIN_IDS)[keyof typeof EDITOR_PLUG
 
 /**
  * Annotation tool plugins that share `document.annotations`.
- * Kept as separate entry points for code-splitting; use `'annotations'` or this
- * constant to request them as a group.
+ * Kept as separate entry points for code-splitting. Prefer spreading this
+ * constant into `config.plugins`; the `'annotations'` request alias expands to
+ * the same ids.
  */
 export const ANNOTATION_EDITOR_PLUGIN_IDS = [
   EDITOR_PLUGIN_IDS.text,
@@ -584,7 +623,8 @@ export type AnnotationEditorPluginId = (typeof ANNOTATION_EDITOR_PLUGIN_IDS)[num
 
 /**
  * Host-facing plugin request ids (concrete plugins + group aliases).
- * `'annotations'` expands to {@link ANNOTATION_EDITOR_PLUGIN_IDS}.
+ * Prefer spreading {@link ANNOTATION_EDITOR_PLUGIN_IDS}; the `'annotations'`
+ * alias expands to the same ids.
  */
 export type EditorPluginRequestId = EditorPluginId | 'annotations';
 
@@ -630,6 +670,7 @@ export const OPTIONAL_EDITOR_PLUGIN_IDS: readonly EditorPluginId[] = [
   EDITOR_PLUGIN_IDS.colorPicker,
   EDITOR_PLUGIN_IDS.batchExport,
   EDITOR_PLUGIN_IDS.rulers,
+  EDITOR_PLUGIN_IDS.open,
 ];
 
 /** Full first-party plugin set (default when `config.plugins` is omitted). */
@@ -704,6 +745,11 @@ export interface ImageEditorConfig {
    * @see RulersPluginConfig
    */
   readonly rulers?: RulersPluginConfig;
+  /**
+   * Toolbar Upload / New blank (optional `open` plugin).
+   * @see OpenPluginConfig
+   */
+  readonly open?: Partial<OpenPluginConfig>;
   readonly aspectRatios?: readonly AspectRatioPreset[];
   readonly historyLimit?: number;
   readonly close?: Partial<ClosePolicyConfig>;
@@ -712,7 +758,8 @@ export interface ImageEditorConfig {
   /**
    * Which first-party plugins to load. Omit to load all (backward-compatible default).
    * When set, only listed optional plugins are loaded (always-on plugins are merged in).
-   * Alias: `'annotations'` → text / shapes / drawing / path / image-overlay / stickers / emoji.
+   * Prefer `...ANNOTATION_EDITOR_PLUGIN_IDS` for the annotation tool group.
+   * Alias `'annotations'` still expands to the same ids.
    * Triggers dynamic `import()` per optional plugin for host bundle code-splitting.
    */
   readonly plugins?: readonly EditorPluginRequestId[];
