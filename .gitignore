@@ -47,6 +47,8 @@ __screenshots__/
 .DS_Store
 Thumbs.db
 
+# Cursor
+.cursor/
+
 # local debug logs
-.cursor/debug-*.log
 e2e-*.log
