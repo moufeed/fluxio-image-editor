@@ -20,13 +20,15 @@ import { DocsThemeService } from './docs-theme.service';
         <span class="docs-live__hint">{{ hint() }}</span>
       </div>
       <div class="docs-live__stage">
-        <fluxio-image-editor
-          [source]="source"
-          [config]="config()"
-          (ready)="onReady($event)"
-          (saved)="onSaved($event)"
-          (error)="onError($event)"
-        />
+        @for (_ of [editorKey()]; track _) {
+          <fluxio-image-editor
+            [source]="source"
+            [config]="config()"
+            (ready)="onReady($event)"
+            (saved)="onSaved($event)"
+            (error)="onError($event)"
+          />
+        }
       </div>
       @if (status()) {
         <p class="docs-live__status" role="status">{{ status() }}</p>
@@ -90,11 +92,16 @@ export class DocsLiveEditorComponent {
   protected readonly source = docsAssetUrl(DOCS_SAMPLE_IMAGE);
   protected readonly status = signal('');
 
+  /**
+   * Identity of the page-scoped live preview. Plugins / defaultTool are applied
+   * only at editor bootstrap, so the host must remount when this changes.
+   */
+  protected readonly editorKey = computed(() => JSON.stringify(this.live()));
+
   protected readonly config = computed((): ImageEditorConfig => {
     const live = this.live();
     const pageTheme = live.theme;
-    const theme =
-      pageTheme === 'custom' ? 'custom' : this.docsTheme.theme();
+    const theme = pageTheme === 'custom' ? 'custom' : this.docsTheme.theme();
     return withDocsAssetUrls({
       theme,
       locale: live.locale ?? 'en',
@@ -133,7 +140,9 @@ export class DocsLiveEditorComponent {
 
   protected onSaved(result: ImageEditorExportResult): void {
     this.downloadBlob(result.blob, result.fileName);
-    this.status.set(`Downloaded ${result.fileName} (${result.format}, ${result.width}×${result.height}).`);
+    this.status.set(
+      `Downloaded ${result.fileName} (${result.format}, ${result.width}×${result.height}).`,
+    );
   }
 
   private downloadBlob(blob: Blob, fileName: string): void {
