@@ -16,6 +16,7 @@ import {
   type ImageEditorExportResult,
   type ImageEditorHandle,
   type ImageEditorPlugin,
+  type ImageEditorSource,
   OPTIONAL_EDITOR_PLUGIN_IDS,
 } from 'fluxio-image-editor';
 import type { EditorTextDirection, EditorThemeMode } from 'fluxio-image-editor/core';
@@ -87,7 +88,7 @@ export class App {
     typeof document !== 'undefined' &&
     !!document.querySelector('meta[http-equiv="Content-Security-Policy"]');
 
-  protected readonly source = signal<string | File | Blob>('/fixtures/sample.jpg');
+  protected readonly source = signal<ImageEditorSource>('/fixtures/sample.jpg');
   protected readonly formatSamples = DEMO_FORMAT_SAMPLES;
   protected readonly editorVisible = signal(true);
   protected readonly lastExportSize = signal<number | null>(null);
@@ -204,6 +205,12 @@ export class App {
   protected onReady(handle: ImageEditorHandle): void {
     this.handle = handle;
     this.lastEvent.set('ready');
+  }
+
+  /** Sync host `[source]` after toolbar Open/New (avoids double load via rememberSource). */
+  protected onSourceChanged(next: ImageEditorSource): void {
+    this.source.set(next);
+    this.lastEvent.set('sourceChanged');
   }
 
   protected onChanged(): void {

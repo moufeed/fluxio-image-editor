@@ -62,15 +62,15 @@ describe('resolveRequestedPluginIds', () => {
     });
     expect(ids.filter((id) => id === 'drawing')).toEqual(['drawing']);
     expect(ids.filter((id) => id === 'path')).toEqual(['path']);
-    expect(new Set(ids.filter((id) =>
-      (ANNOTATION_EDITOR_PLUGIN_IDS as readonly string[]).includes(id),
-    ))).toEqual(new Set(ANNOTATION_EDITOR_PLUGIN_IDS));
+    expect(
+      new Set(ids.filter((id) => (ANNOTATION_EDITOR_PLUGIN_IDS as readonly string[]).includes(id))),
+    ).toEqual(new Set(ANNOTATION_EDITOR_PLUGIN_IDS));
   });
 
   it('rejects unknown plugin ids', () => {
-    expect(() =>
-      resolveRequestedPluginIds({ plugins: ['not-a-plugin' as 'crop'] }),
-    ).toThrow(/Unknown editor plugin id/);
+    expect(() => resolveRequestedPluginIds({ plugins: ['not-a-plugin' as 'crop'] })).toThrow(
+      /Unknown editor plugin id/,
+    );
   });
 });
 
@@ -148,6 +148,14 @@ describe('resolveEditorPlugins', () => {
     expect(ids.has('path')).toBe(true);
     expect(ids.has('drawing')).toBe(false);
     expect(ids.has('text')).toBe(false);
+  });
+
+  it('loads the open plugin when requested', async () => {
+    const config: ImageEditorConfig = { plugins: ['open'] };
+    const { resolveLazyPlugins } = await import('../../lib/plugins/plugin-loaders-lazy');
+    const plugins = await resolveLazyPlugins(config, 90);
+    const ids = new Set(plugins.map((plugin) => plugin.id));
+    expect(ids.has('open')).toBe(true);
   });
 
   it('loads all annotation plugins when the group alias is requested', async () => {

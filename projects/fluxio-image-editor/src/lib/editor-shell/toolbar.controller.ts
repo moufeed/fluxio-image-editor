@@ -20,6 +20,7 @@ import {
   EXPORT_PNG_ACTION,
   EXPORT_WEBP_ACTION,
 } from 'fluxio-image-editor/plugins/export';
+import { OPEN_FILE_ACTION, OPEN_NEW_ACTION } from 'fluxio-image-editor/plugins/open';
 import {
   TRANSFORM_FLIP_H_COMMAND,
   TRANSFORM_FLIP_V_COMMAND,
@@ -47,6 +48,7 @@ import { EditorUiStore } from './editor-ui.store';
 import { ExportController } from './export.controller';
 import { toolbarActionTranslationKey } from './helpers/toolbar-action-labels';
 import { ModeLifecycleController } from './mode-lifecycle.controller';
+import { OpenController } from './open.controller';
 import { CropTool } from './tools/crop.tool';
 import { DrawingTool } from './tools/drawing.tool';
 import { PathTool } from './tools/path.tool';
@@ -71,6 +73,7 @@ export class ToolbarController {
   private readonly exportController = inject(ExportController);
   private readonly batchExportController = inject(BatchExportController);
   private readonly compare = inject(CompareController);
+  private readonly openController = inject(OpenController);
   private readonly modes = inject(EditorModeCoordinator);
   private readonly lifecycle = inject(ModeLifecycleController);
   private readonly cropTool = inject(CropTool);
@@ -155,6 +158,7 @@ export class ToolbarController {
         this.presentation.sidePanelOpen() && this.presentation.sidePanelTab() === 'history',
       'layers.panel':
         this.presentation.sidePanelOpen() && this.presentation.sidePanelTab() === 'layers',
+      [OPEN_NEW_ACTION]: this.presentation.blankMenuOpen(),
     };
     return this.presentation.toolbarPluginActionIds().map((id) => ({
       id,
@@ -309,6 +313,17 @@ export class ToolbarController {
         case LAYERS_PANEL_ACTION:
           this.toggleSidePanel('layers');
           break;
+        case OPEN_FILE_ACTION:
+          this.closeZoomMenu();
+          this.closeExportMenu();
+          this.closeBlankMenu();
+          void this.openController.openFile();
+          break;
+        case OPEN_NEW_ACTION:
+          this.closeZoomMenu();
+          this.closeExportMenu();
+          void this.openController.onNewAction();
+          break;
         default: {
           const registered = session.getToolbarActions().some((action) => action.id === actionId);
           if (registered) {
@@ -347,6 +362,7 @@ export class ToolbarController {
   toggleZoomMenu(event: Event): void {
     event.stopPropagation();
     this.closeExportMenu();
+    this.closeBlankMenu();
     if (!this.presentation.useZoomPresetsMenu()) {
       this.shell.getSession()?.fitViewport();
       this.ui.zoomMenuOpen.set(false);
@@ -362,11 +378,37 @@ export class ToolbarController {
   toggleExportMenu(event: Event): void {
     event.stopPropagation();
     this.closeZoomMenu();
+    this.closeBlankMenu();
     this.ui.exportMenuOpen.update((open) => !open);
   }
 
   closeExportMenu(): void {
     this.ui.exportMenuOpen.set(false);
+  }
+
+  closeBlankMenu(): void {
+    this.openController.closeBlankMenu();
+  }
+
+  chooseBlankPreset(
+    preset: {
+      readonly id: string;
+      readonly label: string;
+      readonly width: number;
+      readonly height: number;
+      readonly fill?: string;
+    },
+    event?: Event,
+  ): void {
+    this.openController.chooseBlankPreset(preset, event);
+  }
+
+  blankPresets(): ReturnType<OpenController['blankPresets']> {
+    return this.openController.blankPresets();
+  }
+
+  usesBlankMenu(): boolean {
+    return this.openController.usesBlankMenu();
   }
 
   chooseExportFormat(format: RasterExportFormat, event?: Event): void {
@@ -399,6 +441,9 @@ export class ToolbarController {
     }
     if (this.ui.exportMenuOpen()) {
       this.closeExportMenu();
+    }
+    if (this.ui.blankMenuOpen()) {
+      this.closeBlankMenu();
     }
     if (this.ui.annotationActionsMenu()) {
       this.annotations.closeActionsMenu();

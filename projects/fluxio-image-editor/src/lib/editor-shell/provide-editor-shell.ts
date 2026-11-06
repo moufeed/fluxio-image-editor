@@ -12,6 +12,7 @@ import { EditorUiStore } from './editor-ui.store';
 import { ExportController } from './export.controller';
 import { KeyboardController } from './keyboard.controller';
 import { ModeLifecycleController } from './mode-lifecycle.controller';
+import { OpenController } from './open.controller';
 import { ToolbarController } from './toolbar.controller';
 import { ColorPickerTool } from './tools/color-picker.tool';
 import { CropTool } from './tools/crop.tool';
@@ -50,6 +51,7 @@ export function provideEditorShell(): Provider[] {
     BatchExportController,
     CompareController,
     BootstrapController,
+    OpenController,
     ModeLifecycleController,
     ToolbarController,
     KeyboardController,

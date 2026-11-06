@@ -63,6 +63,7 @@ import type {
   TransformableAnnotation,
 } from '../geometry/annotation-transform';
 import { EditorStore } from '../state/editor-store';
+import { createBlankImageBlob } from '../assets/blank-image';
 import { normalizeSource, revokeAsset } from './asset-loader';
 
 /**
@@ -125,6 +126,16 @@ export interface EditorSessionOptions {
 
 export interface ImageEditorHandle {
   load(source: ImageEditorSource): Promise<void>;
+  /**
+   * Create a synthetic blank PNG and load it (Open plugin / host “New” parity).
+   * Clears history like {@link load}.
+   */
+  loadBlank(options?: {
+    readonly width?: number;
+    readonly height?: number;
+    readonly fill?: string;
+    readonly fileName?: string;
+  }): Promise<void>;
   execute(commandId: string, payload?: unknown, options?: ExecuteCommandOptions): Promise<void>;
   /** End the active coalesced run so the next command starts a new undo step. */
   sealHistoryCoalescing(): void;
@@ -687,6 +698,21 @@ export class EditorSession implements ImageEditorHandle {
       this.store.setStatus('error', typed.message);
       throw typed;
     }
+  }
+
+  async loadBlank(options?: {
+    readonly width?: number;
+    readonly height?: number;
+    readonly fill?: string;
+    readonly fileName?: string;
+  }): Promise<void> {
+    const file = await createBlankImageBlob({
+      width: options?.width ?? 1920,
+      height: options?.height ?? 1080,
+      fill: options?.fill,
+      fileName: options?.fileName,
+    });
+    await this.load(file);
   }
 
   async execute(

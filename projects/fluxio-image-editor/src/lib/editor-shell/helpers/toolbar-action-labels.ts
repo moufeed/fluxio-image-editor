@@ -19,6 +19,8 @@ const ACTION_TRANSLATION_KEYS: Readonly<Record<string, string>> = {
   'layers.panel': 'toolbar.layersPanel',
   'rulers.tool': 'toolbar.rulers',
   annotations: 'toolbar.annotations',
+  'open.file': 'open.file',
+  'open.new': 'open.new',
 };
 
 export function toolbarActionTranslationKey(actionId: string): string {

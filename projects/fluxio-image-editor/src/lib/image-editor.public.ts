@@ -19,6 +19,8 @@ export type {
   CropPluginConfig,
   CropGuidesConfig,
   CropShape,
+  OpenPluginConfig,
+  OpenBlankPreset,
   AspectRatioPreset,
   AdjustmentsState,
   EffectsState,
@@ -81,7 +83,12 @@ export {
   isRtlEditorLocale,
 } from 'fluxio-image-editor/core';
 
-export type { ConfirmCloseEvent, EditorClosedEvent, EditorProgressEvent, EditorToolbarActionEvent } from './editor-shell/editor-events';
+export type {
+  ConfirmCloseEvent,
+  EditorClosedEvent,
+  EditorProgressEvent,
+  EditorToolbarActionEvent,
+} from './editor-shell/editor-events';
 
 export {
   IMAGE_EDITOR_PLUGINS,
