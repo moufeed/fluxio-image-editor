@@ -225,6 +225,7 @@ export class FluxioImageEditor {
         this.annotations.bind(session);
         this.transformTool.bind(session);
         this.rulersTool.setEnabled(session.getRegisteredPluginIds().includes('rulers'));
+        this.applyDefaultTool();
         this.ready.emit(session);
       },
     });
@@ -244,6 +245,20 @@ export class FluxioImageEditor {
     this.watermarkTool.syncFromDocument();
     this.rulersTool.pushToSession();
     this.annotations.syncAfterDocumentChange();
+  }
+
+  private applyDefaultTool(): void {
+    const tool = this.config().defaultTool?.trim();
+    if (!tool) {
+      return;
+    }
+    const actionId =
+      tool === 'rotate'
+        ? 'transform.rotate-tool'
+        : tool === 'resize'
+          ? 'transform.resize-tool'
+          : `${tool}.tool`;
+    void this.toolbar.onToolbarAction(actionId);
   }
 
   private emitError(error: unknown): void {
